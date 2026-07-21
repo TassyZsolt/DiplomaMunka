@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@expo/metro-config": "^57.0.6"
+  }
+}
