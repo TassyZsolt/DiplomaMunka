@@ -31,7 +31,7 @@ export const getWaterData = async () => {
 
     const q = query(waterRef,
          where('userId', '==', user.uid),
-        where('date', '==', new Date().toISOString())
+        where('date', '==', new Date().toISOString().split('T')[0])
     );
 
     const querySnapshot = await getDocs(q);
