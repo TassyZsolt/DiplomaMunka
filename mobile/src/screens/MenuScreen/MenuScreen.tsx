@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Button } from 'react-native';
-import styles from './MenuScreenStyles';
+import { View, Button, StyleSheet } from 'react-native';
 
 const MenuScreen = ({ navigation }: any) => {
   return (
@@ -21,4 +20,25 @@ const MenuScreen = ({ navigation }: any) => {
   );
 };
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: 'background',
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  button: {
+    marginBottom: 15,
+  },
+  buttonWrapper: {
+    marginVertical: 10
+  }
+});
+
 export default MenuScreen;
+

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, Button} from 'react-native';
-import { auth, db } from '../../firebaseConfig';
+import { View, Text, ActivityIndicator, Button, StyleSheet} from 'react-native';
+import { auth, db } from '../../../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
-import styles from './ProfileScreenStyle';
 
 const ProfileScreen = ({navigation} : any) => {
   const [userData, setUserData] = useState<any>(null);
@@ -51,4 +50,30 @@ const ProfileScreen = ({navigation} : any) => {
 
 export default ProfileScreen;
 
-
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 24,
+    backgroundColor: 'background'
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 20
+  },
+  value: {
+    fontSize: 16,
+    marginTop: 4
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center'
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginVertical: 8,
+    borderRadius: 5,
+  }
+});

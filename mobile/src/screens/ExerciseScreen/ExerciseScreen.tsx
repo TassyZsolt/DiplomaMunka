@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
-import styles from './ExerciseScreenStyle';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 
 const workouts = [
   { id: '1', name: 'Teljes test edzés' },
@@ -29,5 +28,30 @@ const ExerciseScreen = ({ navigation }: any) => {
 };
 
 export default ExerciseScreen;
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 24,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  item: {
+    padding: 16,
+    backgroundColor: '#3AC786',
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  itemText: {
+    fontSize: 16,
+  },
+});
+
+
 
 

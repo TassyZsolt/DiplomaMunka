@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, Button, Text } from 'react-native';
-import styles from './HomeScreenStyles';
-import { globalStyles } from '../../globalStyles';
+import { View, Button, Text, StyleSheet } from 'react-native';
+import { globalStyles } from '../../../globalStyles';
 
 
 const HomeScreen = ({ navigation }: any) => {
@@ -19,3 +18,22 @@ const HomeScreen = ({ navigation }: any) => {
 };
  
 export default HomeScreen;
+
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: 'background',
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  button: {
+    marginBottom: 15,
+  },
+});

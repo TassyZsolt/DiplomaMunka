@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Alert } from 'react-native';
-import { auth, db } from '../../firebaseConfig';
+import { View, TextInput, Button, Alert, StyleSheet } from 'react-native';
+import { auth, db } from '../../../firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
-import styles from './ProfileScreenStyle';
 import { Image } from 'react-native';
-import placeholderAvatar from '../../assets/images/placeholderAvatar.jpg';
+import placeholderAvatar from '../../../assets/images/placeholderAvatar.jpg';
 
 
 const EditProfileScreen = ({ route, navigation }: any) => {
@@ -52,4 +51,35 @@ const EditProfileScreen = ({ route, navigation }: any) => {
 };
 
 export default EditProfileScreen;
+
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 24,
+    backgroundColor: 'background'
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 20
+  },
+  value: {
+    fontSize: 16,
+    marginTop: 4
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center'
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginVertical: 8,
+    borderRadius: 5,
+  }
+});
+
 

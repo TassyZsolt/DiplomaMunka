@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Button } from 'react-native';
-import styles from './DietScreenStyle';
+import { View, Button, StyleSheet } from 'react-native';
 
 const DietScreen = () => {
   const handleSelect = (type: string) => {
@@ -25,3 +24,21 @@ const DietScreen = () => {
 };
 
 export default DietScreen;
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'center',
+    backgroundColor: 'background',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  buttonWrapper: {
+    flex: 1,
+    marginHorizontal: 8,
+  },
+});
