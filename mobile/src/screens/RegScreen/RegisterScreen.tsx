@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { registerUser } from '../../services/authService';
+import { colors } from '../../themes/tokens';
 
 const RegisterScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: 'background',
+    backgroundColor: colors.background,
   },
   title: {
     fontSize: 24,

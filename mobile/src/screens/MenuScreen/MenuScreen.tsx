@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Button, StyleSheet } from 'react-native';
+import { colors } from '../../themes/tokens';
 
 const MenuScreen = ({ navigation }: any) => {
   return (
@@ -25,7 +26,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: 'background',
+    backgroundColor: colors.background,
   },
   title: {
     fontSize: 24,

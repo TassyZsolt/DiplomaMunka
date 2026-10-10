@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Alert, Text, StyleSheet } from 'react-native';
 import { loginUser } from '../../services/authService';
+import { colors } from '../../themes/tokens';
 
 const LoginScreen = ({navigation} : any) => {
   const [email, setEmail] = useState('');
@@ -47,6 +48,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
+    backgroundColor: colors.background,
   },
   title: {
     fontSize: 24,

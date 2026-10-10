@@ -4,6 +4,7 @@ import { auth, db } from '../../../firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Image } from 'react-native';
 import placeholderAvatar from '../../../assets/images/placeholderAvatar.jpg';
+import { colors } from '../../themes/tokens';
 
 
 const EditProfileScreen = ({ route, navigation }: any) => {
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    backgroundColor: 'background'
+    backgroundColor: colors.background
   },
   label: {
     fontSize: 16,

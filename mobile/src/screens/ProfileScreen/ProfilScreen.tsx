@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, Button, StyleSheet} from 'react-native';
 import { auth, db } from '../../../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { colors } from '../../themes/tokens';
 
 const ProfileScreen = ({navigation} : any) => {
   const [userData, setUserData] = useState<any>(null);
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    backgroundColor: 'background'
+    backgroundColor: colors.background
   },
   label: {
     fontSize: 16,

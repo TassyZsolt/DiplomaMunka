@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Button, StyleSheet } from 'react-native';
+import { colors } from '../../themes/tokens';
 
 const DietScreen = () => {
   const handleSelect = (type: string) => {
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     justifyContent: 'center',
-    backgroundColor: 'background',
+    backgroundColor: colors.background,
   },
   buttonRow: {
     flexDirection: 'row',

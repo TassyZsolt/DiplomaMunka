@@ -11,6 +11,9 @@ import StatScreen from './src/screens/StatScreen/StatScreen';
 import ExerciseScreen from './src/screens/ExerciseScreen/ExerciseScreen';
 import DietScreen from './src/screens/DietScreen/DietScreen';
 import EditProfileScreen from './src/screens/ProfileScreen/EditProfileScreen';
+import PersonalStatsScreen from './src/screens/PersonalStatsScreen/PersonalStatsScreen';
+import StepCounterScreen from './src/screens/StepCounterScreen/StepCounterScreen';
+import WorkoutProgressScreen from './src/screens/WorkoutProgressScreen/WorkoutProgressScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,7 +29,13 @@ export default function App() {
         <Stack.Screen name="Stats" component={StatScreen} options={{title: 'Statisztika oldal'}} />
         <Stack.Screen name="Exercise" component={ExerciseScreen} options={{title: 'Edzés oldal'}} />
         <Stack.Screen name="Diet" component={DietScreen} options={{title: 'Diéta oldal'}} />
-        <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{title: 'Diéta oldal'}} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{title: 'Profil szerkesztése'}} />
+        <Stack.Screen name="PersonalStats" component={PersonalStatsScreen} options={{title: 'Személyes statisztikák'}} />
+        <Stack.Screen name="personalStats" component={PersonalStatsScreen} options={{title: 'Személyes statisztikák'}} />
+        <Stack.Screen name="StepCounter" component={StepCounterScreen} options={{title: 'Lépésszámláló'}} />
+        <Stack.Screen name="stepCounter" component={StepCounterScreen} options={{title: 'Lépésszámláló'}} />
+        <Stack.Screen name="WorkoutProgress" component={WorkoutProgressScreen} options={{title: 'Edzések & Előrehaladás'}} />
+        <Stack.Screen name="workoutProgress" component={WorkoutProgressScreen} options={{title: 'Edzések & Előrehaladás'}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
