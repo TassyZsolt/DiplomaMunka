@@ -41,3 +41,16 @@ export const loginUser = async (email: string, password: string) => {
     throw error;
   }
 };
+
+// Jelszó visszaállítása
+export const resetPassword = async (email: string) => {
+  try {
+    const { sendPasswordResetEmail } = await import('firebase/auth');
+    await sendPasswordResetEmail(auth, email);
+    console.log('✅ Jelszó-visszaállító email elküldve:', email);
+  } catch (error: any) {
+    console.error('❌ Hiba jelszó visszaállításakor:', error.message);
+    throw error;
+  }
+};
+

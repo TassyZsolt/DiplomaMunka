@@ -20,11 +20,11 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
         <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Főoldal'}}/>
-        <Stack.Screen name="Register" component={RegisterScreen} options={{title: 'Regisztráció'}} />
-        <Stack.Screen name="Login" component={LoginScreen} options={{title: 'Bejelentkezés'}} />
-        <Stack.Screen name="Menu" component={MenuScreen} options={{title: 'Menu oldal'}} />
+        <Stack.Screen name="Register" component={RegisterScreen} options={{headerShown: false}} />
+        <Stack.Screen name="Menu" component={MenuScreen} options={{title: 'Főmenü', headerBackVisible: false}} />
         <Stack.Screen name="Profil" component={ProfilScreen} options={{title: 'Profil oldal'}} />
         <Stack.Screen name="Stats" component={StatScreen} options={{title: 'Statisztika oldal'}} />
         <Stack.Screen name="Exercise" component={ExerciseScreen} options={{title: 'Edzés oldal'}} />
