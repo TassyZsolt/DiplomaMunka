@@ -18,6 +18,7 @@ import {
   calculateDistanceKm,
   calculateCaloriesKcal,
   calculateActiveMinutes,
+  updateCachedSteps,
 } from '../../services/stepService';
 
 // 7 napos előzmény adatok (szemléltetéshez / drill-down elemzéshez)
@@ -78,6 +79,7 @@ const StepCounterScreen = ({ navigation }: any) => {
 
       subscription = Pedometer.watchStepCount((result) => {
         setLiveSteps(result.steps);
+        updateCachedSteps(result.steps);
       });
     };
 

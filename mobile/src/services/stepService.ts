@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { Pedometer } from 'expo-sensors';
 
 export interface StepData {
@@ -13,14 +14,22 @@ export interface StepData {
 
 export const DAILY_STEP_GOAL = 10000;
 
+// Helyi gyorsítótár a mért lépésekhez
+let cachedSteps = 0;
+
+export const updateCachedSteps = (steps: number) => {
+  if (steps > 0) {
+    cachedSteps = steps;
+  }
+};
+
 /**
  * Ellenőrzi a hardveres lépésszámláló elérhetőségét a készüléken
  */
 export const checkPedometerAvailability = async (): Promise<boolean> => {
   try {
     return await Pedometer.isAvailableAsync();
-  } catch (error) {
-    console.warn('Hiba az érzékelő ellenőrzésekor:', error);
+  } catch {
     return false;
   }
 };
@@ -32,29 +41,47 @@ export const requestPedometerPermission = async (): Promise<boolean> => {
   try {
     const { status } = await Pedometer.requestPermissionsAsync();
     return status === 'granted';
-  } catch (error) {
-    console.warn('Hiba a jogosultság kérésekor:', error);
+  } catch {
     return false;
   }
 };
 
 /**
- * Lekéri a mai napon eddig megtett lépéseket (éjféltől mostanáig)
+ * Lekéri a mai napon eddig megtett lépéseket (éjféltől mostanáig).
+ * 
+ * MEGJEGYZÉS:
+ * Androidon a beépített `getStepCountAsync` metódushoz Google Fit / Health Connect
+ * integráció szükséges a múltbeli időpontok lekérdezéséhez (különben kivételt dob).
+ * Valós Android készüléken a hardveres `watchStepCount` élő számláló működik out-of-the-box.
+ * Emiatt hibák esetén csendesen visszatérünk a gyorsítótárazott lépésekkel,
+ * felesleges konzol-figyelmeztetések nélkül.
  */
 export const getTodaySteps = async (): Promise<number> => {
   try {
     const isAvailable = await checkPedometerAvailability();
-    if (!isAvailable) return 0;
+    if (!isAvailable) {
+      return cachedSteps;
+    }
 
+    // Android platformon a getStepCountAsync csak Google Fit/Health Connect mellett támogatott
+    if (Platform.OS === 'android') {
+      return cachedSteps;
+    }
+
+    // iOS CoreMotion esetén közvetlenül elérhető a napi archívum
     const end = new Date();
     const start = new Date();
     start.setHours(0, 0, 0, 0);
 
     const result = await Pedometer.getStepCountAsync(start, end);
-    return result ? result.steps : 0;
-  } catch (error) {
-    console.warn('Nem sikerült lekérni a mai lépéseket a hardverből:', error);
-    return 0;
+    if (result && typeof result.steps === 'number') {
+      cachedSteps = result.steps;
+      return result.steps;
+    }
+    return cachedSteps;
+  } catch {
+    // Csendes fallback szimulátor vagy hiányzó engedély esetén
+    return cachedSteps;
   }
 };
 

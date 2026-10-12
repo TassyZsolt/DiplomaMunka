@@ -1,5 +1,5 @@
 import { db, auth } from '../../firebaseConfig';
-import { collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { savePersonalRecord, getPersonalRecords } from './prService';
 import { colors } from '../themes/tokens';
 
@@ -132,9 +132,9 @@ const INITIAL_DEMO_SESSIONS: WorkoutSession[] = [
         name: 'Felhúzás (Deadlift)',
         muscleGroup: 'Hát',
         sets: [
-          { setNumber: 1, weightKg: 100, reps: 8, completed: true },
-          { setNumber: 2, weightKg: 120, reps: 5, completed: true },
-          { setNumber: 3, weightKg: 135, reps: 5, completed: true },
+          { setNumber: 1, weightKg: 20, reps: 10, completed: true },
+          { setNumber: 2, weightKg: 25, reps: 8, completed: true },
+          { setNumber: 3, weightKg: 30, reps: 5, completed: true },
         ],
       },
       {
@@ -232,13 +232,17 @@ export const getWorkoutSessions = async (): Promise<WorkoutSession[]> => {
 
   try {
     const workoutsRef = collection(db, 'workoutSessions');
-    const q = query(workoutsRef, where('userId', '==', user.uid), orderBy('date', 'desc'));
+    // Csak a userId-ra szűrünk Firestore-ban, így nem igényel összetett indexet (composite index)
+    const q = query(workoutsRef, where('userId', '==', user.uid));
     const querySnapshot = await getDocs(q);
 
     const loaded: WorkoutSession[] = [];
     querySnapshot.forEach((docSnap) => {
       loaded.push({ id: docSnap.id, ...(docSnap.data() as any) });
     });
+
+    // Rendezés helyben JavaScriptben dátum szerint csökkenő sorrendben
+    loaded.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
     if (loaded.length > 0) {
       sessionCache = loaded;

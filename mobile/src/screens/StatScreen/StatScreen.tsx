@@ -373,21 +373,23 @@ const StatScreen = ({ navigation }: any) => {
         <View style={styles.workoutStatsRow}>
           <View>
             <Text style={styles.workoutMainValue}>
-              {weeklyStats ? `${weeklyStats.completedCount} / 5 edzés` : '4 / 5 edzés'}
+              {weeklyStats ? `${weeklyStats.completedCount} / 5 edzés` : '— / 5 edzés'}
             </Text>
             <Text style={styles.workoutSubLabel}>
-              Heti cél {weeklyStats ? Math.min(100, Math.round((weeklyStats.completedCount / 5) * 100)) : 80}%-a elérve
+              {weeklyStats
+                ? `Heti cél ${Math.min(100, Math.round((weeklyStats.completedCount / 5) * 100))}%-a elérve`
+                : 'Heti cél betöltése...'}
             </Text>
           </View>
 
           {/* Heti napok mikro-indikátorok (H, K, Sze, Cs, P, Szo, V) */}
           <View style={styles.weekDotsRow}>
             {(weeklyStats?.weekDays || [
-              { dayName: 'H', status: 'completed', isToday: false },
+              { dayName: 'H', status: 'rest', isToday: false },
               { dayName: 'K', status: 'rest', isToday: false },
-              { dayName: 'Sze', status: 'completed', isToday: false },
-              { dayName: 'Cs', status: 'completed', isToday: false },
-              { dayName: 'P', status: 'completed', isToday: false },
+              { dayName: 'Sze', status: 'rest', isToday: false },
+              { dayName: 'Cs', status: 'rest', isToday: false },
+              { dayName: 'P', status: 'rest', isToday: false },
               { dayName: 'Szo', status: 'planned', isToday: true },
               { dayName: 'V', status: 'rest', isToday: false },
             ]).map((dot: any, idx: number) => {
@@ -413,7 +415,7 @@ const StatScreen = ({ navigation }: any) => {
 
         <View style={styles.workoutFooterBar}>
           <Text style={styles.workoutFooterText}>
-            ⏱️ {weeklyStats ? Math.round(weeklyStats.totalTimeMinutes / 60) : 4} óra edzésidő • {weeklyStats ? weeklyStats.totalVolumeKg.toLocaleString('hu-HU') : '14,200'} kg volumen
+            ⏱️ {weeklyStats ? `${Math.round(weeklyStats.totalTimeMinutes / 60)} óra edzésidő • ${weeklyStats.totalVolumeKg.toLocaleString('hu-HU')} kg volumen` : 'Edzésadatok betöltése...'}
           </Text>
           <Text style={styles.cardLinkText}>Részletes naptár & volumen →</Text>
         </View>
