@@ -1,26 +1,37 @@
 import { db, auth } from '../../firebaseConfig';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
-import { savePersonalRecord, getPersonalRecords } from './prService';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  doc,
+  setDoc,
+  deleteDoc,
+  getDoc,
+} from 'firebase/firestore';
 import { colors } from '../themes/tokens';
-
-export type MuscleGroup = 'Láb' | 'Mellkas' | 'Hát' | 'Váll & Kar' | 'Törzs / Has' | 'Kardió';
+import { TrackingType, MuscleGroup, ExerciseDoc, getExercises } from './exerciseService';
 
 export interface ExerciseSet {
   setNumber: number;
-  weightKg: number;
-  reps: number;
+  weightKg?: number;
+  reps?: number;
+  durationSeconds?: number;
   completed: boolean;
 }
 
 export interface WorkoutExercise {
-  name: string;
-  muscleGroup: MuscleGroup;
+  exerciseId: string; // Hivatkozás a /exercises/{id} dokumentumra
+  name: string; // Tárolt megjelenítendő név
+  trackingType: TrackingType; // 'reps_only' | 'reps_and_weight' | 'time_hold'
+  muscleGroup: MuscleGroup | string;
   sets: ExerciseSet[];
 }
 
 export interface WorkoutSession {
   id?: string;
-  userId?: string;
+  userId: string; // Felhasználó azonosító a gyökérben
   planId?: string;
   title: string;
   date: string; // YYYY-MM-DD
@@ -32,92 +43,112 @@ export interface WorkoutSession {
   createdAt?: string;
 }
 
+export interface WorkoutPlanExercise {
+  exerciseId: string;
+  name: string;
+  trackingType: TrackingType;
+  muscleGroup: MuscleGroup | string;
+  defaultSets: number;
+  defaultReps?: number;
+  defaultWeight?: number;
+  defaultDurationSeconds?: number;
+}
+
 export interface WorkoutPlan {
   id: string;
   name: string;
   category: string;
+  frequency?: string; // pl. "3 nap / hét"
   durationEst: string;
   description: string;
-  exercises: {
-    name: string;
-    muscleGroup: MuscleGroup;
-    defaultSets: number;
-    defaultReps: number;
-    defaultWeight: number;
-  }[];
+  isCustom?: boolean;
+  userId?: string;
+  exercises: WorkoutPlanExercise[];
+  createdAt?: string;
 }
 
+// 5 Predefiniált Edzésterv Sablon (új Exercise ID referenciákkal)
 export const WORKOUT_PLANS: WorkoutPlan[] = [
   {
-    id: '1',
-    name: 'Teljes test edzés (Full Body)',
-    category: 'Erő & Állóképesség',
+    id: 'ppl',
+    name: 'PPL - Push Pull Legs',
+    category: 'Izomtömeg-növelés',
+    frequency: '3 nap / hét',
     durationEst: '60 perc',
-    description: 'Összetett alapgyakorlatok az egész test átmozgatására és fejlesztésére.',
+    description: 'A legnépszerűbb osztott edzésterv: Nyomó, Húzó és Láb napok az optimális izomfejlődéshez.',
+    isCustom: false,
     exercises: [
-      { name: 'Guggolás (Squat)', muscleGroup: 'Láb', defaultSets: 4, defaultReps: 8, defaultWeight: 80 },
-      { name: 'Fekvenyomás (Bench Press)', muscleGroup: 'Mellkas', defaultSets: 4, defaultReps: 8, defaultWeight: 70 },
-      { name: 'Döntött törzsű evezés', muscleGroup: 'Hát', defaultSets: 3, defaultReps: 10, defaultWeight: 60 },
-      { name: 'Vállból nyomás kézisúlyzóval', muscleGroup: 'Váll & Kar', defaultSets: 3, defaultReps: 10, defaultWeight: 20 },
-      { name: 'Bicepsz állva rúddal', muscleGroup: 'Váll & Kar', defaultSets: 3, defaultReps: 12, defaultWeight: 30 },
+      { exerciseId: 'bench_press', name: 'Fekvenyomás', trackingType: 'reps_and_weight', muscleGroup: 'mellkas', defaultSets: 4, defaultReps: 8, defaultWeight: 75 },
+      { exerciseId: 'overhead_press', name: 'Vállból nyomás', trackingType: 'reps_and_weight', muscleGroup: 'vall', defaultSets: 3, defaultReps: 10, defaultWeight: 45 },
+      { exerciseId: 'dips', name: 'Tolódzkodás', trackingType: 'reps_only', muscleGroup: 'mellkas', defaultSets: 3, defaultReps: 12 },
+      { exerciseId: 'pull_up', name: 'Húzódzkodás', trackingType: 'reps_only', muscleGroup: 'hat', defaultSets: 4, defaultReps: 8 },
+      { exerciseId: 'barbell_squat', name: 'Guggolás rúddal', trackingType: 'reps_and_weight', muscleGroup: 'lab', defaultSets: 4, defaultReps: 8, defaultWeight: 90 },
     ],
   },
   {
-    id: '2',
+    id: 'beginner_full_body',
+    name: 'Kezdő Teljes Test',
+    category: 'Erőnlét',
+    frequency: '2 nap / hét',
+    durationEst: '45 perc',
+    description: 'Alapgyakorlatok az egész test átmozgatására és az alapvető funkcionális erőnlét felépítésére.',
+    isCustom: false,
+    exercises: [
+      { exerciseId: 'bodyweight_squat', name: 'Testsúlyos guggolás', trackingType: 'reps_only', muscleGroup: 'lab', defaultSets: 3, defaultReps: 15 },
+      { exerciseId: 'push_up', name: 'Fekvőtámasz', trackingType: 'reps_only', muscleGroup: 'mellkas', defaultSets: 3, defaultReps: 10 },
+      { exerciseId: 'ring_rows', name: 'Vízszintes húzás gyűrűn', trackingType: 'reps_only', muscleGroup: 'hat', defaultSets: 3, defaultReps: 10 },
+      { exerciseId: 'plank', name: 'Plank tartás', trackingType: 'time_hold', muscleGroup: 'torzs', defaultSets: 3, defaultDurationSeconds: 45 },
+    ],
+  },
+  {
+    id: 'upper_body',
     name: 'Felsőtest (Upper Body)',
-    category: 'Izomtömeg növelés',
+    category: 'Izomtömeg-növelés',
+    frequency: '3 nap / hét',
     durationEst: '55 perc',
-    description: 'Fókuszban a mellkas, a hát és a kar izomzata intenzív szuperszettekkel.',
+    description: 'Fókuszban a mellkas, hát és váll izomzata intenzív összetett és izolációs gyakorlatokkal.',
+    isCustom: false,
     exercises: [
-      { name: 'Fekvenyomás (Bench Press)', muscleGroup: 'Mellkas', defaultSets: 4, defaultReps: 6, defaultWeight: 85 },
-      { name: 'Döntött pados nyomás', muscleGroup: 'Mellkas', defaultSets: 3, defaultReps: 10, defaultWeight: 26 },
-      { name: 'Húzódzkodás / Széles lehúzás', muscleGroup: 'Hát', defaultSets: 4, defaultReps: 8, defaultWeight: 65 },
-      { name: 'Evezés T-rúddal', muscleGroup: 'Hát', defaultSets: 3, defaultReps: 10, defaultWeight: 55 },
-      { name: 'Tolódzkodás', muscleGroup: 'Váll & Kar', defaultSets: 3, defaultReps: 10, defaultWeight: 0 },
+      { exerciseId: 'bench_press', name: 'Fekvenyomás', trackingType: 'reps_and_weight', muscleGroup: 'mellkas', defaultSets: 4, defaultReps: 8, defaultWeight: 80 },
+      { exerciseId: 'bent_over_row', name: 'Döntött törzsű evezés', trackingType: 'reps_and_weight', muscleGroup: 'hat', defaultSets: 4, defaultReps: 10, defaultWeight: 60 },
+      { exerciseId: 'incline_dumbbell_press', name: 'Döntött pados nyomás', trackingType: 'reps_and_weight', muscleGroup: 'mellkas', defaultSets: 3, defaultReps: 10, defaultWeight: 26 },
+      { exerciseId: 'lat_pulldown', name: 'Széles lehúzás mellhez', trackingType: 'reps_and_weight', muscleGroup: 'hat', defaultSets: 3, defaultReps: 10, defaultWeight: 65 },
+      { exerciseId: 'dumbbell_bicep_curl', name: 'Bicepsz hajlítás kézisúlyzóval', trackingType: 'reps_and_weight', muscleGroup: 'kar', defaultSets: 3, defaultReps: 12, defaultWeight: 14 },
     ],
   },
   {
-    id: '3',
+    id: 'leg_day',
     name: 'Lábnap (Leg Day)',
     category: 'Alsótest erő',
-    durationEst: '65 perc',
-    description: 'Nehéz összetett gyakorlatok a comb és a vádli maximális terhelésére.',
-    exercises: [
-      { name: 'Guggolás (Squat)', muscleGroup: 'Láb', defaultSets: 4, defaultReps: 8, defaultWeight: 100 },
-      { name: 'Lábtoló gép', muscleGroup: 'Láb', defaultSets: 4, defaultReps: 10, defaultWeight: 160 },
-      { name: 'Combhajlító fekve', muscleGroup: 'Láb', defaultSets: 3, defaultReps: 12, defaultWeight: 45 },
-      { name: 'Álló vádliemelés', muscleGroup: 'Láb', defaultSets: 4, defaultReps: 15, defaultWeight: 70 },
-    ],
-  },
-  {
-    id: '4',
-    name: 'Hát & Kar (Back & Arms)',
-    category: 'Húzó mozdulatok',
+    frequency: '2 nap / hét',
     durationEst: '60 perc',
-    description: 'Hátvastagítás és karfejlesztés felhúzással és izolációs gyakorlatokkal.',
+    description: 'Comb, vádli és farizom fókuszú edzés nehéz alap- és gépes gyakorlatokkal.',
+    isCustom: false,
     exercises: [
-      { name: 'Felhúzás (Deadlift)', muscleGroup: 'Hát', defaultSets: 4, defaultReps: 5, defaultWeight: 120 },
-      { name: 'Széles lehúzás mellhez', muscleGroup: 'Hát', defaultSets: 4, defaultReps: 10, defaultWeight: 60 },
-      { name: 'Bicepsz franciarúddal', muscleGroup: 'Váll & Kar', defaultSets: 3, defaultReps: 10, defaultWeight: 32 },
-      { name: 'Csigás tricepsz letolás', muscleGroup: 'Váll & Kar', defaultSets: 3, defaultReps: 12, defaultWeight: 25 },
+      { exerciseId: 'barbell_squat', name: 'Guggolás rúddal', trackingType: 'reps_and_weight', muscleGroup: 'lab', defaultSets: 4, defaultReps: 6, defaultWeight: 100 },
+      { exerciseId: 'leg_press', name: 'Lábtoló gép', trackingType: 'reps_and_weight', muscleGroup: 'lab', defaultSets: 4, defaultReps: 10, defaultWeight: 160 },
+      { exerciseId: 'leg_curl', name: 'Combhajlító fekve', trackingType: 'reps_and_weight', muscleGroup: 'lab', defaultSets: 3, defaultReps: 12, defaultWeight: 45 },
+      { exerciseId: 'calf_raise', name: 'Álló vádliemelés', trackingType: 'reps_and_weight', muscleGroup: 'lab', defaultSets: 4, defaultReps: 15, defaultWeight: 70 },
     ],
   },
   {
-    id: '5',
+    id: 'cardio_core',
     name: 'Kardió & Törzserő (Cardio & Core)',
     category: 'Zsírégetés & Állóképesség',
+    frequency: '3 nap / hét',
     durationEst: '45 perc',
     description: 'Pulzusfokozó intervallumok és mély törzsizmokat erősítő blokk.',
+    isCustom: false,
     exercises: [
-      { name: 'Futópad intervall futás', muscleGroup: 'Kardió', defaultSets: 4, defaultReps: 5, defaultWeight: 0 },
-      { name: 'Plank statikus tartás', muscleGroup: 'Törzs / Has', defaultSets: 4, defaultReps: 60, defaultWeight: 0 },
-      { name: 'Függeszkedve lábemelés', muscleGroup: 'Törzs / Has', defaultSets: 3, defaultReps: 15, defaultWeight: 0 },
-      { name: 'Harangozás csigán', muscleGroup: 'Törzs / Has', defaultSets: 3, defaultReps: 15, defaultWeight: 35 },
+      { exerciseId: 'treadmill_interval', name: 'Futópad intervall futás', trackingType: 'time_hold', muscleGroup: 'torzs', defaultSets: 4, defaultDurationSeconds: 300 },
+      { exerciseId: 'plank', name: 'Plank tartás', trackingType: 'time_hold', muscleGroup: 'torzs', defaultSets: 4, defaultDurationSeconds: 60 },
+      { exerciseId: 'leg_raises_hanging', name: 'Függeszkedő lábemelés', trackingType: 'reps_only', muscleGroup: 'torzs', defaultSets: 3, defaultReps: 15 },
+      { exerciseId: 'handstand_hold', name: 'Kézállás tartás (falnál)', trackingType: 'time_hold', muscleGroup: 'vall', defaultSets: 3, defaultDurationSeconds: 30 },
     ],
   },
 ];
 
-// Kezdeti minta előzmény edzések a héten
+// Kezdeti minta előzmény edzések a héten (lokális cache és fallback)
 const INITIAL_DEMO_SESSIONS: WorkoutSession[] = [
   {
     id: 'demo-1',
@@ -129,20 +160,24 @@ const INITIAL_DEMO_SESSIONS: WorkoutSession[] = [
     totalSets: 14,
     exercises: [
       {
-        name: 'Felhúzás (Deadlift)',
-        muscleGroup: 'Hát',
+        exerciseId: 'deadlift',
+        name: 'Felhúzás',
+        trackingType: 'reps_and_weight',
+        muscleGroup: 'hat',
         sets: [
-          { setNumber: 1, weightKg: 20, reps: 10, completed: true },
-          { setNumber: 2, weightKg: 25, reps: 8, completed: true },
-          { setNumber: 3, weightKg: 30, reps: 5, completed: true },
+          { setNumber: 1, weightKg: 100, reps: 10, completed: true },
+          { setNumber: 2, weightKg: 120, reps: 8, completed: true },
+          { setNumber: 3, weightKg: 140, reps: 5, completed: true },
         ],
       },
       {
-        name: 'Bicepsz állva',
-        muscleGroup: 'Váll & Kar',
+        exerciseId: 'pull_up',
+        name: 'Húzódzkodás',
+        trackingType: 'reps_only',
+        muscleGroup: 'hat',
         sets: [
-          { setNumber: 1, weightKg: 30, reps: 10, completed: true },
-          { setNumber: 2, weightKg: 30, reps: 10, completed: true },
+          { setNumber: 1, reps: 10, completed: true },
+          { setNumber: 2, reps: 8, completed: true },
         ],
       },
     ],
@@ -159,8 +194,10 @@ const INITIAL_DEMO_SESSIONS: WorkoutSession[] = [
     totalSets: 14,
     exercises: [
       {
-        name: 'Fekvenyomás (Bench Press)',
-        muscleGroup: 'Mellkas',
+        exerciseId: 'bench_press',
+        name: 'Fekvenyomás',
+        trackingType: 'reps_and_weight',
+        muscleGroup: 'mellkas',
         sets: [
           { setNumber: 1, weightKg: 80, reps: 8, completed: true },
           { setNumber: 2, weightKg: 95, reps: 6, completed: true },
@@ -170,59 +207,97 @@ const INITIAL_DEMO_SESSIONS: WorkoutSession[] = [
     notes: 'Kiváló mellkas pumpa',
     createdAt: '2026-10-07T17:30:00Z',
   },
-  {
-    id: 'demo-3',
-    userId: 'demo',
-    title: 'Kardió & Törzserő',
-    date: '2026-10-08',
-    durationMinutes: 45,
-    totalVolumeKg: 800,
-    totalSets: 10,
-    exercises: [
-      {
-        name: 'Futópad intervall',
-        muscleGroup: 'Kardió',
-        sets: [{ setNumber: 1, weightKg: 0, reps: 25, completed: true }],
-      },
-    ],
-    notes: 'Erős kardió',
-    createdAt: '2026-10-08T19:00:00Z',
-  },
-  {
-    id: 'demo-4',
-    userId: 'demo',
-    title: 'Kemény Lábnap',
-    date: '2026-10-09',
-    durationMinutes: 70,
-    totalVolumeKg: 5400,
-    totalSets: 15,
-    exercises: [
-      {
-        name: 'Guggolás (Squat)',
-        muscleGroup: 'Láb',
-        sets: [
-          { setNumber: 1, weightKg: 90, reps: 8, completed: true },
-          { setNumber: 2, weightKg: 110, reps: 8, completed: true },
-          { setNumber: 3, weightKg: 120, reps: 6, completed: true },
-        ],
-      },
-    ],
-    notes: 'Új lábnap volumen rekord',
-    createdAt: '2026-10-09T18:15:00Z',
-  },
 ];
 
 let sessionCache: WorkoutSession[] = [...INITIAL_DEMO_SESSIONS];
+let customPlansCache: WorkoutPlan[] = [];
 
 /**
- * Lekéri az elérhető edzésterveket
+ * Lekéri az elérhető előre definiált edzésterveket (Sablonok)
  */
 export const getWorkoutPlans = (): WorkoutPlan[] => {
   return WORKOUT_PLANS;
 };
 
 /**
- * Lekéri a felhasználó korábbi edzéseit
+ * Lekéri a felhasználó saját egyéni edzésterveit (Saját Terveim)
+ */
+export const getCustomWorkoutPlans = async (): Promise<WorkoutPlan[]> => {
+  const user = auth.currentUser;
+  if (!user) {
+    return [...customPlansCache];
+  }
+
+  try {
+    const plansRef = collection(db, 'workoutPlans');
+    const q = query(plansRef, where('userId', '==', user.uid));
+    const snapshot = await getDocs(q);
+
+    const loaded: WorkoutPlan[] = [];
+    snapshot.forEach((docSnap) => {
+      loaded.push({ id: docSnap.id, ...(docSnap.data() as any), isCustom: true });
+    });
+
+    customPlansCache = loaded;
+    return loaded;
+  } catch (error) {
+    console.warn('Nem sikerült lekérni a saját edzésterveket Firestore-ból, helyi cache használata:', error);
+    return [...customPlansCache];
+  }
+};
+
+/**
+ * Új egyéni edzésterv mentése Firestore-ba
+ */
+export const saveCustomWorkoutPlan = async (
+  planData: Omit<WorkoutPlan, 'id' | 'userId' | 'isCustom' | 'createdAt'>
+): Promise<WorkoutPlan> => {
+  const user = auth.currentUser;
+  const tempId = 'plan_' + Date.now();
+  const nowIso = new Date().toISOString();
+
+  const newPlan: WorkoutPlan = {
+    ...planData,
+    id: tempId,
+    userId: user?.uid || 'guest',
+    isCustom: true,
+    createdAt: nowIso,
+  };
+
+  customPlansCache = [newPlan, ...customPlansCache];
+
+  if (user) {
+    try {
+      const docRef = await addDoc(collection(db, 'workoutPlans'), {
+        ...newPlan,
+        userId: user.uid,
+      });
+      newPlan.id = docRef.id;
+    } catch (error) {
+      console.warn('Nem sikerült elmenteni az edzéstervet Firestore-ba:', error);
+    }
+  }
+
+  return newPlan;
+};
+
+/**
+ * Egyéni edzésterv törlése
+ */
+export const deleteCustomWorkoutPlan = async (planId: string): Promise<void> => {
+  customPlansCache = customPlansCache.filter((p) => p.id !== planId);
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      await deleteDoc(doc(db, 'workoutPlans', planId));
+    } catch (error) {
+      console.warn('Nem sikerült törölni az edzéstervet Firestore-ból:', error);
+    }
+  }
+};
+
+/**
+ * Lekéri a felhasználó korábbi edzéseit a Firestore-ból
  */
 export const getWorkoutSessions = async (): Promise<WorkoutSession[]> => {
   const user = auth.currentUser;
@@ -232,7 +307,6 @@ export const getWorkoutSessions = async (): Promise<WorkoutSession[]> => {
 
   try {
     const workoutsRef = collection(db, 'workoutSessions');
-    // Csak a userId-ra szűrünk Firestore-ban, így nem igényel összetett indexet (composite index)
     const q = query(workoutsRef, where('userId', '==', user.uid));
     const querySnapshot = await getDocs(q);
 
@@ -241,7 +315,6 @@ export const getWorkoutSessions = async (): Promise<WorkoutSession[]> => {
       loaded.push({ id: docSnap.id, ...(docSnap.data() as any) });
     });
 
-    // Rendezés helyben JavaScriptben dátum szerint csökkenő sorrendben
     loaded.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
     if (loaded.length > 0) {
@@ -257,12 +330,12 @@ export const getWorkoutSessions = async (): Promise<WorkoutSession[]> => {
 };
 
 /**
- * Elmenti a befejezett edzést a Firestore-ba és frissíti a statisztikákat
+ * Elmenti a befejezett edzést a Firestore workoutSessions kollekcióba,
+ * és ellenőrzi / frissíti a /personalRecords/{userId}_{exerciseId} rekordokat.
  */
 export const saveWorkoutSession = async (
   sessionData: Omit<WorkoutSession, 'id' | 'userId' | 'createdAt' | 'totalVolumeKg' | 'totalSets'>
 ): Promise<WorkoutSession> => {
-  // Összvolumen és összes sorozat kiszámítása
   let volume = 0;
   let setsCount = 0;
 
@@ -270,18 +343,24 @@ export const saveWorkoutSession = async (
     ex.sets.forEach((set) => {
       if (set.completed) {
         setsCount++;
-        volume += (set.weightKg || 0) * (set.reps || 0);
+        if (ex.trackingType === 'reps_and_weight') {
+          volume += (set.weightKg || 0) * (set.reps || 0);
+        }
       }
     });
   });
 
+  const user = auth.currentUser;
+  const currentUserId = user?.uid || 'guest';
   const nowIso = new Date().toISOString();
+  const sessionDate = sessionData.date || nowIso.split('T')[0];
+
   const newSession: WorkoutSession = {
     id: 'local-' + Date.now(),
-    userId: auth.currentUser?.uid || 'guest',
+    userId: currentUserId,
     title: sessionData.title,
     planId: sessionData.planId,
-    date: sessionData.date || nowIso.split('T')[0],
+    date: sessionDate,
     durationMinutes: sessionData.durationMinutes || 45,
     totalVolumeKg: volume,
     totalSets: setsCount,
@@ -290,36 +369,9 @@ export const saveWorkoutSession = async (
     createdAt: nowIso,
   };
 
-  // Behelyezés a helyi cache elejére
   sessionCache = [newSession, ...sessionCache];
 
-  // Automatikus PR ellenőrzés és frissítés
-  try {
-    const currentPrs = await getPersonalRecords();
-    for (const ex of sessionData.exercises) {
-      const lowerName = ex.name.toLowerCase();
-      let targetPrId: string | null = null;
-      if (lowerName.includes('guggol') || lowerName.includes('squat')) targetPrId = 'squats';
-      else if (lowerName.includes('fekvenyom') || lowerName.includes('bench')) targetPrId = 'benchpress';
-      else if (lowerName.includes('felhúz') || lowerName.includes('deadlift')) targetPrId = 'deadlifts';
-
-      if (targetPrId) {
-        const maxCompletedWeight = Math.max(
-          0,
-          ...ex.sets.filter((s) => s.completed).map((s) => s.weightKg)
-        );
-        const existingPr = currentPrs[targetPrId]?.weight || 0;
-        if (maxCompletedWeight > existingPr) {
-          await savePersonalRecord(targetPrId, maxCompletedWeight, 1, `Edzésből elért új PR (${sessionData.title})`);
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('PR auto-update hiba:', e);
-  }
-
-  // Firestore mentés
-  const user = auth.currentUser;
+  // 1. Mentés a Firestore workoutSessions kollekcióba
   if (user) {
     try {
       const docRef = await addDoc(collection(db, 'workoutSessions'), {
@@ -329,6 +381,70 @@ export const saveWorkoutSession = async (
       newSession.id = docRef.id;
     } catch (error) {
       console.warn('Nem sikerült elmenteni az edzést a Firestore-ba:', error);
+    }
+  }
+
+  // 2. Personal Records automatikus ellenőrzése és frissítése (/personalRecords/{userId}_{exerciseId})
+  if (user) {
+    try {
+      for (const ex of sessionData.exercises) {
+        const completedSets = ex.sets.filter((s) => s.completed);
+        if (completedSets.length === 0) continue;
+
+        const docId = `${user.uid}_${ex.exerciseId}`;
+        const prDocRef = doc(db, 'personalRecords', docId);
+        const prSnap = await getDoc(prDocRef);
+        const existingData = prSnap.exists() ? prSnap.data() : null;
+
+        let isNewPr = false;
+        let prPayload: any = {
+          userId: user.uid,
+          exerciseId: ex.exerciseId,
+          exerciseName: ex.name,
+          trackingType: ex.trackingType,
+          date: sessionDate,
+          updatedAt: nowIso,
+          notes: `Edzésből elért PR (${sessionData.title})`,
+        };
+
+        if (ex.trackingType === 'reps_and_weight') {
+          const maxWeight = Math.max(0, ...completedSets.map((s) => s.weightKg || 0));
+          const setWithMaxWeight = completedSets.find((s) => (s.weightKg || 0) === maxWeight);
+          const currentWeight = Number(existingData?.weight) || 0;
+
+          if (maxWeight > currentWeight) {
+            isNewPr = true;
+            prPayload.weight = maxWeight;
+            prPayload.reps = setWithMaxWeight?.reps || 1;
+          }
+        } else if (ex.trackingType === 'reps_only') {
+          const maxReps = Math.max(0, ...completedSets.map((s) => s.reps || 0));
+          const currentReps = Number(existingData?.reps) || 0;
+
+          if (maxReps > currentReps) {
+            isNewPr = true;
+            prPayload.reps = maxReps;
+            prPayload.weight = 0;
+          }
+        } else if (ex.trackingType === 'time_hold') {
+          const maxSeconds = Math.max(0, ...completedSets.map((s) => s.durationSeconds || 0));
+          const currentSeconds = Number(existingData?.durationSeconds) || 0;
+
+          if (maxSeconds > currentSeconds) {
+            isNewPr = true;
+            prPayload.durationSeconds = maxSeconds;
+            prPayload.reps = 0;
+            prPayload.weight = 0;
+          }
+        }
+
+        if (isNewPr) {
+          await setDoc(prDocRef, prPayload, { merge: true });
+          console.log(`🏆 Új PR elmentve a Firestore-ba: ${ex.name} (${docId})`);
+        }
+      }
+    } catch (prError) {
+      console.warn('Hiba a Personal Records Firestore frissítésekor:', prError);
     }
   }
 
@@ -361,9 +477,8 @@ export interface WeeklyStats {
 }
 
 export const getWeeklyWorkoutStats = (sessions: WorkoutSession[]): WeeklyStats => {
-  // A hét hétfőjének és vasárnapjának meghatározása
   const today = new Date();
-  const currentDayOfWeek = today.getDay(); // 0: Vasárnap, 1: Hétfő ...
+  const currentDayOfWeek = today.getDay();
   const diffToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
 
   const monday = new Date(today);
@@ -376,7 +491,6 @@ export const getWeeklyWorkoutStats = (sessions: WorkoutSession[]): WeeklyStats =
   let totalTime = 0;
   let totalVolume = 0;
 
-  // Izomcsoport számláló
   const groupCounts: Record<string, number> = {
     'Láb': 0,
     'Mellkas': 0,
@@ -391,7 +505,6 @@ export const getWeeklyWorkoutStats = (sessions: WorkoutSession[]): WeeklyStats =
     const dayNumStr = String(dayDate.getDate()).padStart(2, '0');
     const isToday = dayDate.toDateString() === today.toDateString();
 
-    // Találat a korábbi edzések között ezen a napon
     const matchingSession = sessions.find((s) => s.date === dateStr);
 
     let status: 'completed' | 'rest' | 'planned' = 'rest';
@@ -406,12 +519,12 @@ export const getWeeklyWorkoutStats = (sessions: WorkoutSession[]): WeeklyStats =
       totalTime += matchingSession.durationMinutes;
       totalVolume += matchingSession.totalVolumeKg;
 
-      // Izomcsoportok összeszámlálása
       matchingSession.exercises.forEach((ex) => {
         const completedSets = ex.sets.filter((s) => s.completed).length;
-        if (ex.muscleGroup.includes('Láb')) groupCounts['Láb'] += completedSets;
-        else if (ex.muscleGroup.includes('Mell')) groupCounts['Mellkas'] += completedSets;
-        else if (ex.muscleGroup.includes('Hát')) groupCounts['Hát'] += completedSets;
+        const mg = (ex.muscleGroup || '').toLowerCase();
+        if (mg.includes('lab')) groupCounts['Láb'] += completedSets;
+        else if (mg.includes('mell')) groupCounts['Mellkas'] += completedSets;
+        else if (mg.includes('hat')) groupCounts['Hát'] += completedSets;
         else groupCounts['Váll & Kar'] += completedSets;
       });
     } else if (isToday) {

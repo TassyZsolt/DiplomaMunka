@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,35 +9,114 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../../themes/tokens';
+import { auth } from '../../../firebaseConfig';
 import {
   WorkoutPlan,
+  WorkoutPlanExercise,
   WorkoutExercise,
   ExerciseSet,
   getWorkoutPlans,
+  getCustomWorkoutPlans,
+  saveCustomWorkoutPlan,
+  deleteCustomWorkoutPlan,
   saveWorkoutSession,
 } from '../../services/workoutService';
+import {
+  ExerciseDoc,
+  TrackingType,
+  ExerciseCategory,
+  MuscleGroup,
+  fetchAvailableExercises,
+  createCustomExercise,
+  deleteCustomExercise,
+  seedPredefinedExercises,
+} from '../../services/exerciseService';
 
 const ExerciseScreen = ({ navigation }: any) => {
-  const [plans, setPlans] = useState<WorkoutPlan[]>([]);
-  const [activePlan, setActivePlan] = useState<WorkoutPlan | null>(null);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  // 1. Fő nézet tab: 'custom' (Saját Terveim) | 'templates' (Sablonok)
+  const [activeTab, setActiveTab] = useState<'custom' | 'templates'>('custom');
 
-  // Aktív edzés állapot
+  // 2. Edzéstervek állapota
+  const [templatePlans, setTemplatePlans] = useState<WorkoutPlan[]>([]);
+  const [customPlans, setCustomPlans] = useState<WorkoutPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
+
+  // 3. Gyakorlat adatbázis (/exercises)
+  const [exercisesDb, setExercisesDb] = useState<ExerciseDoc[]>([]);
+
+  // 4. Aktív edzés folyamat (Workout Session modal)
+  const [activeSessionVisible, setActiveSessionVisible] = useState<boolean>(false);
+  const [currentPlan, setCurrentPlan] = useState<WorkoutPlan | null>(null);
   const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
   const [workoutTimerSeconds, setWorkoutTimerSeconds] = useState<number>(0);
   const [workoutNotes, setWorkoutNotes] = useState<string>('');
-  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isSavingSession, setIsSavingSession] = useState<boolean>(false);
 
-  useEffect(() => {
-    setPlans(getWorkoutPlans());
-  }, []);
+  // 5. Új Egyéni Edzésterv Létrehozása Modal
+  const [planModalVisible, setPlanModalVisible] = useState<boolean>(false);
+  const [newPlanName, setNewPlanName] = useState<string>('');
+  const [newPlanCategory, setNewPlanCategory] = useState<string>('Izomtömeg-növelés');
+  const [newPlanFrequency, setNewPlanFrequency] = useState<string>('3 nap / hét');
+  const [newPlanDuration, setNewPlanDuration] = useState<string>('60 perc');
+  const [newPlanDescription, setNewPlanDescription] = useState<string>('');
+  const [newPlanExercises, setNewPlanExercises] = useState<WorkoutPlanExercise[]>([]);
+  const [isSavingPlan, setIsSavingPlan] = useState<boolean>(false);
 
-  // Időzítő az aktív edzés alatt
+  // 6. Gyakorlat választó (Exercise Picker Modal)
+  const [pickerModalVisible, setPickerModalVisible] = useState<boolean>(false);
+  const [pickerMode, setPickerMode] = useState<'plan_creator' | 'active_workout'>('plan_creator');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('Összes');
+
+  // 7. Új Egyéni Gyakorlat definiálása Modal
+  const [customExModalVisible, setCustomExModalVisible] = useState<boolean>(false);
+  const [customExName, setCustomExName] = useState<string>('');
+  const [customExEnglishName, setCustomExEnglishName] = useState<string>('');
+  const [customExCategory, setCustomExCategory] = useState<ExerciseCategory>('gym');
+  const [customExMuscle, setCustomExMuscle] = useState<MuscleGroup>('mellkas');
+  const [customExTracking, setCustomExTracking] = useState<TrackingType>('reps_and_weight');
+  const [isCreatingEx, setIsCreatingEx] = useState<boolean>(false);
+
+  // Adatok betöltése
+  const loadAllData = async () => {
+    try {
+      setLoadingPlans(true);
+      // Auto-seed predefiniált gyakorlatok
+      seedPredefinedExercises().catch(() => {});
+
+      // Sablonok betöltése
+      setTemplatePlans(getWorkoutPlans());
+
+      // Saját tervek és gyakorlat adatbázis betöltése
+      const [userPlans, allExs] = await Promise.all([
+        getCustomWorkoutPlans(),
+        fetchAvailableExercises(auth.currentUser?.uid),
+      ]);
+
+      setCustomPlans(userPlans);
+      setExercisesDb(allExs);
+    } catch (err) {
+      console.warn('Hiba az edzésadatok betöltésekor:', err);
+    } finally {
+      setLoadingPlans(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadAllData();
+    }, [])
+  );
+
+  // Aktív edzés időzítő
   useEffect(() => {
     let interval: any = null;
-    if (modalVisible) {
+    if (activeSessionVisible) {
       interval = setInterval(() => {
         setWorkoutTimerSeconds((prev) => prev + 1);
       }, 1000);
@@ -46,23 +125,38 @@ const ExerciseScreen = ({ navigation }: any) => {
       setWorkoutTimerSeconds(0);
     }
     return () => clearInterval(interval);
-  }, [modalVisible]);
+  }, [activeSessionVisible]);
 
-  // Edzés indítása egy kiválasztott tervből
+  // Idő formázása mm:ss formátumban
+  const formatTimer = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const remainingSecs = secs % 60;
+    return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
+  };
+
+  // =========================================================================
+  // EDZÉS INDÍTÁSA EGY TERVBŐL (Sablon vagy Saját)
+  // =========================================================================
   const handleStartWorkout = (plan: WorkoutPlan) => {
-    setActivePlan(plan);
+    setCurrentPlan(plan);
+
     const initialExercises: WorkoutExercise[] = plan.exercises.map((ex) => {
       const sets: ExerciseSet[] = [];
-      for (let i = 1; i <= ex.defaultSets; i++) {
+      const count = ex.defaultSets || 3;
+      for (let i = 1; i <= count; i++) {
         sets.push({
           setNumber: i,
-          weightKg: ex.defaultWeight,
-          reps: ex.defaultReps,
+          weightKg: ex.defaultWeight || (ex.trackingType === 'reps_and_weight' ? 60 : 0),
+          reps: ex.defaultReps || (ex.trackingType !== 'time_hold' ? 10 : undefined),
+          durationSeconds: ex.defaultDurationSeconds || (ex.trackingType === 'time_hold' ? 45 : undefined),
           completed: false,
         });
       }
+
       return {
+        exerciseId: ex.exerciseId,
         name: ex.name,
+        trackingType: ex.trackingType,
         muscleGroup: ex.muscleGroup,
         sets,
       };
@@ -71,7 +165,7 @@ const ExerciseScreen = ({ navigation }: any) => {
     setWorkoutExercises(initialExercises);
     setWorkoutNotes('');
     setWorkoutTimerSeconds(0);
-    setModalVisible(true);
+    setActiveSessionVisible(true);
   };
 
   // Sorozat állapotának váltása (pipálás)
@@ -84,11 +178,11 @@ const ExerciseScreen = ({ navigation }: any) => {
     });
   };
 
-  // Súly / Ismétlés módosítása
+  // Sorozat értékének dinamikus frissítése
   const handleUpdateSetValue = (
     exIndex: number,
     setIndex: number,
-    field: 'weightKg' | 'reps',
+    field: 'weightKg' | 'reps' | 'durationSeconds',
     val: string
   ) => {
     const num = parseFloat(val) || 0;
@@ -100,17 +194,33 @@ const ExerciseScreen = ({ navigation }: any) => {
   };
 
   // Új sorozat hozzáadása a gyakorlathoz
-  const handleAddSet = (exIndex: number) => {
+  const handleAddSetToExercise = (exIndex: number) => {
     setWorkoutExercises((prev) => {
       const updated = [...prev];
       const ex = updated[exIndex];
       const lastSet = ex.sets[ex.sets.length - 1];
+
       ex.sets.push({
         setNumber: ex.sets.length + 1,
-        weightKg: lastSet ? lastSet.weightKg : 60,
-        reps: lastSet ? lastSet.reps : 10,
+        weightKg: lastSet?.weightKg ?? (ex.trackingType === 'reps_and_weight' ? 60 : 0),
+        reps: lastSet?.reps ?? (ex.trackingType !== 'time_hold' ? 10 : undefined),
+        durationSeconds: lastSet?.durationSeconds ?? (ex.trackingType === 'time_hold' ? 45 : undefined),
         completed: false,
       });
+
+      return updated;
+    });
+  };
+
+  // Sorozat törlése
+  const handleRemoveSet = (exIndex: number, setIndex: number) => {
+    setWorkoutExercises((prev) => {
+      const updated = [...prev];
+      if (updated[exIndex].sets.length > 1) {
+        updated[exIndex].sets.splice(setIndex, 1);
+        // Újraszámozás
+        updated[exIndex].sets.forEach((s, idx) => (s.setNumber = idx + 1));
+      }
       return updated;
     });
   };
@@ -125,200 +235,498 @@ const ExerciseScreen = ({ navigation }: any) => {
     if (completedSetsCount === 0) {
       Alert.alert(
         'Figyelmeztetés',
-        'Még egyetlen sorozatot sem jelöltél be teljesítettként (zöld pipa). Biztosan befejezed?',
+        'Még egyetlen sorozatot sem jelöltél be teljesítettként (zöld pipa). Biztosan befejezed és mented?',
         [
           { text: 'Még folytatom', style: 'cancel' },
-          { text: 'Befejezés', onPress: () => doSaveWorkout() },
+          { text: 'Befejezés', onPress: () => doSaveSession() },
         ]
       );
       return;
     }
 
-    doSaveWorkout();
+    doSaveSession();
   };
 
-  const doSaveWorkout = async () => {
+  const doSaveSession = async () => {
     try {
-      setIsSaving(true);
+      setIsSavingSession(true);
       const durationMin = Math.max(1, Math.round(workoutTimerSeconds / 60));
-      const savedSession = await saveWorkoutSession({
-        title: activePlan ? activePlan.name : 'Egyéni edzés',
-        planId: activePlan?.id,
+
+      const saved = await saveWorkoutSession({
+        title: currentPlan ? currentPlan.name : 'Egyéni Edzés',
+        planId: currentPlan?.id,
         date: new Date().toISOString().split('T')[0],
         durationMinutes: durationMin,
         exercises: workoutExercises,
         notes: workoutNotes,
       });
 
-      setModalVisible(false);
+      setActiveSessionVisible(false);
       Alert.alert(
-        '🎉 Edzés Sikeresen Rögzítve!',
-        `Időtartam: ${savedSession.durationMinutes} perc\nMegmozgatott súly: ${savedSession.totalVolumeKg.toLocaleString('hu-HU')} kg\nElvégzett sorozatok: ${savedSession.totalSets}`,
-        [
-          { text: 'Rendben' },
-          {
-            text: 'Statisztika megtekintése',
-            onPress: () => navigation.navigate('WorkoutProgress'),
-          },
-        ]
+        'Edzés sikeresen elmentve! 🏆',
+        `Időtartam: ${durationMin} perc\nÖsszes teljesített sorozat: ${saved.totalSets}\nÖsszvolumen: ${saved.totalVolumeKg} kg\n\nAz új rekordjaid (PR) automatikusan frissültek!`
       );
-    } catch (e) {
-      Alert.alert('Hiba', 'Nem sikerült menteni az edzést.');
+    } catch (err: any) {
+      Alert.alert('Hiba', err.message || 'Nem sikerült elmenteni az edzést.');
     } finally {
-      setIsSaving(false);
+      setIsSavingSession(false);
     }
   };
 
-  // Idő formázása mm:ss
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  // =========================================================================
+  // GYAKORLAT VÁLASZTÓ ÉS HOZZÁADÁS (Exercise Picker)
+  // =========================================================================
+  const openExercisePicker = (mode: 'plan_creator' | 'active_workout') => {
+    setPickerMode(mode);
+    setSearchQuery('');
+    setSelectedCategoryFilter('Összes');
+    setPickerModalVisible(true);
   };
 
+  const handleSelectExercise = (ex: ExerciseDoc) => {
+    if (pickerMode === 'plan_creator') {
+      // Hozzáadás az új tervhez
+      const newPlanEx: WorkoutPlanExercise = {
+        exerciseId: ex.id,
+        name: ex.name,
+        trackingType: ex.trackingType,
+        muscleGroup: ex.muscleGroup,
+        defaultSets: 3,
+        defaultReps: ex.trackingType !== 'time_hold' ? 10 : undefined,
+        defaultWeight: ex.trackingType === 'reps_and_weight' ? 60 : undefined,
+        defaultDurationSeconds: ex.trackingType === 'time_hold' ? 45 : undefined,
+      };
+      setNewPlanExercises((prev) => [...prev, newPlanEx]);
+    } else {
+      // Hozzáadás az aktív edzéshez közvetlenül
+      const newWorkoutEx: WorkoutExercise = {
+        exerciseId: ex.id,
+        name: ex.name,
+        trackingType: ex.trackingType,
+        muscleGroup: ex.muscleGroup,
+        sets: [
+          {
+            setNumber: 1,
+            reps: ex.trackingType !== 'time_hold' ? 10 : undefined,
+            weightKg: ex.trackingType === 'reps_and_weight' ? 60 : undefined,
+            durationSeconds: ex.trackingType === 'time_hold' ? 45 : undefined,
+            completed: false,
+          },
+        ],
+      };
+      setWorkoutExercises((prev) => [...prev, newWorkoutEx]);
+    }
+
+    setPickerModalVisible(false);
+  };
+
+  // Új egyéni gyakorlat mentése
+  const handleSaveCustomExercise = async () => {
+    if (!customExName.trim()) {
+      Alert.alert('Hiba', 'Kérlek add meg a gyakorlat nevét!');
+      return;
+    }
+
+    try {
+      setIsCreatingEx(true);
+      const created = await createCustomExercise({
+        name: customExName.trim(),
+        englishName: customExEnglishName.trim() || customExName.trim(),
+        category: customExCategory,
+        muscleGroup: customExMuscle,
+        trackingType: customExTracking,
+        equipment: 'none',
+      });
+
+      // Frissítés a lokális listában
+      setExercisesDb((prev) => [created, ...prev]);
+      setCustomExName('');
+      setCustomExEnglishName('');
+      setCustomExModalVisible(false);
+      Alert.alert('Sikeres létrehozás 🎉', `A(z) "${created.name}" gyakorlat bekerült a listába!`);
+    } catch (e: any) {
+      Alert.alert('Hiba', e.message || 'Nem sikerült létrehozni a gyakorlatot.');
+    } finally {
+      setIsCreatingEx(false);
+    }
+  };
+
+  // Egyéni gyakorlat törlése (csak a saját készítésű gyakorlatokra)
+  const handleDeleteCustomExercise = (ex: ExerciseDoc) => {
+    Alert.alert(
+      'Gyakorlat törlése',
+      `Biztosan törölni szeretnéd a(z) "${ex.name}" egyéni gyakorlatot?`,
+      [
+        { text: 'Mégse', style: 'cancel' },
+        {
+          text: 'Törlés',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteCustomExercise(ex.id);
+              setExercisesDb((prev) => prev.filter((item) => item.id !== ex.id));
+              Alert.alert('Sikeres törlés', `A(z) "${ex.name}" gyakorlat sikeresen törölve.`);
+            } catch (err: any) {
+              Alert.alert('Hiba', err.message || 'Nem sikerült törölni a gyakorlatot.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // =========================================================================
+  // EGYÉNI EDZÉSTERV LÉTREHOZÁSA ÉS TÖRLÉSE
+  // =========================================================================
+  const handleSaveNewPlan = async () => {
+    if (!newPlanName.trim()) {
+      Alert.alert('Hiányzó adat', 'Kérlek adj meg egy nevet az edzéstervnek!');
+      return;
+    }
+    if (newPlanExercises.length === 0) {
+      Alert.alert('Hiányzó gyakorlatok', 'Kérlek adj hozzá legalább 1 gyakorlatot a tervhez!');
+      return;
+    }
+
+    try {
+      setIsSavingPlan(true);
+      const saved = await saveCustomWorkoutPlan({
+        name: newPlanName.trim(),
+        category: newPlanCategory,
+        frequency: newPlanFrequency,
+        durationEst: newPlanDuration,
+        description: newPlanDescription.trim() || 'Egyéni edzésterv céljaid eléréséhez.',
+        exercises: newPlanExercises,
+      });
+
+      setCustomPlans((prev) => [saved, ...prev]);
+      setPlanModalVisible(false);
+      // Reset form
+      setNewPlanName('');
+      setNewPlanDescription('');
+      setNewPlanExercises([]);
+      Alert.alert('Sikeres mentés 🎉', `A(z) "${saved.name}" edzésterv sikeresen elkészült!`);
+    } catch (e: any) {
+      Alert.alert('Hiba', e.message || 'Nem sikerült elmenteni az edzéstervet.');
+    } finally {
+      setIsSavingPlan(false);
+    }
+  };
+
+  const handleDeletePlan = (plan: WorkoutPlan) => {
+    Alert.alert(
+      'Edzésterv törlése',
+      `Biztosan törölni szeretnéd a(z) "${plan.name}" saját edzéstervedet?`,
+      [
+        { text: 'Mégse', style: 'cancel' },
+        {
+          text: 'Törlés',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteCustomWorkoutPlan(plan.id);
+            setCustomPlans((prev) => prev.filter((p) => p.id !== plan.id));
+          },
+        },
+      ]
+    );
+  };
+
+  // Szűrt gyakorlatok keresés és kategória alapján
+  const filteredExercises = exercisesDb.filter((ex) => {
+    const matchesSearch =
+      ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ex.englishName.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (selectedCategoryFilter === 'Összes') return true;
+    if (selectedCategoryFilter === 'Saját testsúly') return ex.category === 'calisthenics';
+    if (selectedCategoryFilter === 'Súlyzós') return ex.category === 'gym';
+    if (selectedCategoryFilter === 'Mobilitás') return ex.category === 'mobility';
+
+    return true;
+  });
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Text style={styles.title}>Edzéstervek & Tréning</Text>
-      <Text style={styles.subtitle}>
-        Válassz egy edzéstervet, kövesd a sorozatokat és rögzítsd a valós edzéseidet!
-      </Text>
+    <View style={styles.container}>
+      {/* ========================================================================= */}
+      {/* 1. SEGMENTED CONTROL (Saját Terveim vs Sablonok) */}
+      {/* ========================================================================= */}
+      <View style={styles.segmentContainer}>
+        <TouchableOpacity
+          style={[styles.segmentBtn, activeTab === 'custom' && styles.segmentBtnActive]}
+          activeOpacity={0.8}
+          onPress={() => setActiveTab('custom')}
+        >
+          <Text style={[styles.segmentText, activeTab === 'custom' && styles.segmentTextActive]}>
+            Saját Terveim ({customPlans.length})
+          </Text>
+        </TouchableOpacity>
 
-      {/* Gyors ugrás a haladási statisztikákhoz */}
-      <TouchableOpacity
-        style={styles.statsBanner}
-        onPress={() => navigation.navigate('WorkoutProgress')}
+        <TouchableOpacity
+          style={[styles.segmentBtn, activeTab === 'templates' && styles.segmentBtnActive]}
+          activeOpacity={0.8}
+          onPress={() => setActiveTab('templates')}
+        >
+          <Text style={[styles.segmentText, activeTab === 'templates' && styles.segmentTextActive]}>
+            Sablonok ({templatePlans.length})
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ========================================================================= */}
+      {/* 2. LISTA NÉZET: SAJÁT TERVEK VAGY SABLONOK */}
+      {/* ========================================================================= */}
+      <ScrollView
+        contentContainerStyle={styles.scrollList}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.statsBannerLeft}>
-          <Text style={styles.statsBannerEmoji}>📊</Text>
+        {activeTab === 'custom' ? (
+          /* --- SAJÁT TERVEIM TAB --- */
           <View>
-            <Text style={styles.statsBannerTitle}>Heti Edzésnapló & Terhelés</Text>
-            <Text style={styles.statsBannerSubtitle}>Naptár és izomcsoport statisztikák</Text>
-          </View>
-        </View>
-        <Text style={styles.statsBannerArrow}>›</Text>
-      </TouchableOpacity>
+            {/* Elsődleges CTA Gomb */}
+            <TouchableOpacity
+              style={styles.createPlanPrimaryBtn}
+              activeOpacity={0.85}
+              onPress={() => {
+                setNewPlanName('');
+                setNewPlanExercises([]);
+                setPlanModalVisible(true);
+              }}
+            >
+              <Text style={styles.createPlanPrimaryBtnText}>+ Új Edzésterv Létrehozása</Text>
+            </TouchableOpacity>
 
-      <Text style={styles.sectionHeader}>Elérhető edzéstervek:</Text>
-
-      {/* Edzéstervek kártyái */}
-      {plans.map((plan) => (
-        <View key={plan.id} style={styles.planCard}>
-          <View style={styles.planCardHeader}>
-            <View style={styles.planTitleCol}>
-              <Text style={styles.planName}>{plan.name}</Text>
-              <Text style={styles.planCategory}>{plan.category}</Text>
-            </View>
-            <View style={styles.durationBadge}>
-              <Text style={styles.durationBadgeText}>⏱️ {plan.durationEst}</Text>
-            </View>
-          </View>
-
-          <Text style={styles.planDescription}>{plan.description}</Text>
-
-          {/* Gyakorlatok miniatűr listája */}
-          <View style={styles.exercisePreviewBox}>
-            <Text style={styles.exercisePreviewHeader}>Gyakorlatok:</Text>
-            {plan.exercises.map((ex, exIdx) => (
-              <View key={exIdx} style={styles.exercisePreviewRow}>
-                <Text style={styles.exerciseDot}>•</Text>
-                <Text style={styles.exerciseNameText}>{ex.name}</Text>
-                <Text style={styles.exerciseSetsText}>
-                  {ex.defaultSets}x{ex.defaultReps} ({ex.defaultWeight} kg)
+            {loadingPlans ? (
+              <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 30 }} />
+            ) : customPlans.length === 0 ? (
+              <View style={styles.emptyStateCard}>
+                <Text style={styles.emptyEmoji}>📋</Text>
+                <Text style={styles.emptyTitle}>Még nincsenek saját edzésterveid</Text>
+                <Text style={styles.emptySubtitle}>
+                  Készíts egyedi edzéstervet a kedvenc gyakorlataiddal a fenti gombra kattintva, vagy válassz egyet az 5 beépített sablon közül!
                 </Text>
               </View>
-            ))}
+            ) : (
+              customPlans.map((plan) => (
+                <View key={plan.id} style={styles.planCard}>
+                  <View style={styles.planCardHeader}>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={styles.planCardEmoji}>🏋️</Text>
+                        <Text style={styles.planCardTitle}>{plan.name}</Text>
+                      </View>
+                      <Text style={styles.planCardMeta}>
+                        {plan.frequency || '3 nap / hét'} • {plan.category} • {plan.durationEst}
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => handleDeletePlan(plan)}
+                      style={styles.deletePlanBtn}
+                    >
+                      <Text style={styles.deletePlanBtnText}>🗑️</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={styles.planCardDesc} numberOfLines={2}>
+                    {plan.description}
+                  </Text>
+
+                  {/* Gyakorlatok összefoglaló chipek */}
+                  <View style={styles.planChipsRow}>
+                    {plan.exercises.slice(0, 4).map((ex, idx) => (
+                      <View key={idx} style={styles.miniExChip}>
+                        <Text style={styles.miniExChipText}>• {ex.name}</Text>
+                      </View>
+                    ))}
+                    {plan.exercises.length > 4 && (
+                      <View style={[styles.miniExChip, { backgroundColor: '#E2E8F0' }]}>
+                        <Text style={[styles.miniExChipText, { color: colors.neutral[700] }]}>
+                          +{plan.exercises.length - 4}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.openPlanBtn}
+                    activeOpacity={0.85}
+                    onPress={() => handleStartWorkout(plan)}
+                  >
+                    <Text style={styles.openPlanBtnText}>Megnyitás & Edzés Indítása ▶</Text>
+                  </TouchableOpacity>
+                </View>
+              ))
+            )}
           </View>
+        ) : (
+          /* --- SABLONOK TAB (5 Predefiniált edzésterv) --- */
+          <View>
+            <Text style={styles.templateHeaderNote}>
+              Válassz egyet a fitnesz szakértők által összeállított, beépített edzéstervekből:
+            </Text>
 
-          <TouchableOpacity
-            style={styles.startWorkoutButton}
-            onPress={() => handleStartWorkout(plan)}
-          >
-            <Text style={styles.startWorkoutButtonText}>▶ Edzés Indítása</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
-
-      {/* ========================================================
-          AKTÍV EDZÉS MODAL
-      ======================================================== */}
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        onRequestClose={() => {
-          Alert.alert('Kilépés', 'Biztosan megszakítod az edzést mentés nélkül?', [
-            { text: 'Folytatás', style: 'cancel' },
-            { text: 'Kilépés', onPress: () => setModalVisible(false) },
-          ]);
-        }}
-      >
-        <View style={styles.activeWorkoutContainer}>
-          {/* Aktív edzés fejléc */}
-          <View style={styles.activeHeader}>
-            <View>
-              <Text style={styles.activeWorkoutTitle}>{activePlan?.name || 'Edzés'}</Text>
-              <Text style={styles.activeWorkoutTimer}>⏱️ {formatTime(workoutTimerSeconds)}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.closeWorkoutBtn}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.closeWorkoutBtnText}>✕</Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.activeScrollView} contentContainerStyle={styles.activeScrollContent}>
-            {workoutExercises.map((ex, exIdx) => (
-              <View key={exIdx} style={styles.activeExCard}>
-                <View style={styles.activeExHeader}>
-                  <Text style={styles.activeExName}>{ex.name}</Text>
-                  <View style={styles.activeMuscleTag}>
-                    <Text style={styles.activeMuscleTagText}>{ex.muscleGroup}</Text>
+            {templatePlans.map((plan) => (
+              <View key={plan.id} style={styles.planCard}>
+                <View style={styles.planCardHeader}>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={styles.planCardEmoji}>
+                        {plan.id === 'ppl' ? '🏋️' : plan.id === 'beginner_full_body' ? '🏃' : '⚡'}
+                      </Text>
+                      <Text style={styles.planCardTitle}>{plan.name}</Text>
+                    </View>
+                    <Text style={styles.planCardMeta}>
+                      {plan.frequency || '3 nap / hét'} • {plan.category} • {plan.durationEst}
+                    </Text>
+                  </View>
+                  <View style={styles.templateBadge}>
+                    <Text style={styles.templateBadgeText}>SABLON</Text>
                   </View>
                 </View>
 
-                {/* Sorozatok fejléc */}
-                <View style={styles.setsTableHeader}>
-                  <Text style={[styles.setsHeaderCell, { width: 40 }]}>SZÉRIA</Text>
-                  <Text style={[styles.setsHeaderCell, { flex: 1 }]}>SÚLY (KG)</Text>
-                  <Text style={[styles.setsHeaderCell, { flex: 1 }]}>ISMÉTLÉS</Text>
-                  <Text style={[styles.setsHeaderCell, { width: 50, textAlign: 'center' }]}>KÉSZ</Text>
+                <Text style={styles.planCardDesc}>{plan.description}</Text>
+
+                {/* Gyakorlat chipek */}
+                <View style={styles.planChipsRow}>
+                  {plan.exercises.map((ex, idx) => (
+                    <View key={idx} style={styles.miniExChip}>
+                      <Text style={styles.miniExChipText}>
+                        • {ex.name}{' '}
+                        <Text style={{ fontSize: 10, color: colors.neutral[500] }}>
+                          ({ex.defaultSets}x)
+                        </Text>
+                      </Text>
+                    </View>
+                  ))}
                 </View>
 
-                {/* Sorozatok listája */}
-                {ex.sets.map((set, sIdx) => (
+                <TouchableOpacity
+                  style={styles.openPlanBtn}
+                  activeOpacity={0.85}
+                  onPress={() => handleStartWorkout(plan)}
+                >
+                  <Text style={styles.openPlanBtnText}>Megnyitás & Edzés Indítása ▶</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* ========================================================================= */}
+      {/* MODAL 1: AKTÍV EDZÉS FOLYAMAT (WORKOUT SESSION) DINAMIKUS TRACKINGTÍPUSOKKAL */}
+      {/* ========================================================================= */}
+      <Modal visible={activeSessionVisible} animationType="slide">
+        <View style={styles.activeModalWrapper}>
+          {/* Felső vezérlősáv: Cím, Időzítő, Bezárás */}
+          <View style={styles.activeHeader}>
+            <View>
+              <Text style={styles.activeWorkoutTitle}>{currentPlan?.name || 'Aktív Edzés'}</Text>
+              <Text style={styles.activeWorkoutTimer}>⏱️ {formatTimer(workoutTimerSeconds)}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.closeActiveBtn}
+              onPress={() => {
+                Alert.alert('Edzés megszakítása', 'Biztosan kilépsz? A nem mentett adatok elvesznek.', [
+                  { text: 'Még folytatom', style: 'cancel' },
+                  { text: 'Kilépés', style: 'destructive', onPress: () => setActiveSessionVisible(false) },
+                ]);
+              }}
+            >
+              <Text style={styles.closeActiveBtnText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.activeExercisesScroll} contentContainerStyle={{ padding: 16 }}>
+            {workoutExercises.map((ex, exIdx) => (
+              <View key={exIdx} style={styles.activeExCard}>
+                <View style={styles.activeExHeader}>
+                  <Text style={styles.activeExTitle}>{ex.name}</Text>
+                  <View style={styles.trackingTypeBadge}>
+                    <Text style={styles.trackingTypeBadgeText}>
+                      {ex.trackingType === 'reps_and_weight'
+                        ? 'Súly & Ism'
+                        : ex.trackingType === 'reps_only'
+                        ? 'Csak ismétlés'
+                        : 'Időtartam'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Dinamikus Sorozat Fejléc a trackingType alapján */}
+                <View style={styles.setHeaderRow}>
+                  <Text style={[styles.setHeaderCell, { width: 36 }]}>SZÉR.</Text>
+                  {ex.trackingType === 'reps_and_weight' && (
+                    <>
+                      <Text style={[styles.setHeaderCell, { flex: 1 }]}>SÚLY (KG)</Text>
+                      <Text style={[styles.setHeaderCell, { flex: 1 }]}>ISM (DB)</Text>
+                    </>
+                  )}
+                  {ex.trackingType === 'reps_only' && (
+                    <Text style={[styles.setHeaderCell, { flex: 2 }]}>ISMÉTLÉS (DB)</Text>
+                  )}
+                  {ex.trackingType === 'time_hold' && (
+                    <Text style={[styles.setHeaderCell, { flex: 2 }]}>IDŐTARTAM (MP)</Text>
+                  )}
+                  <Text style={[styles.setHeaderCell, { width: 44, textAlign: 'center' }]}>PIPÁLÁS</Text>
+                </View>
+
+                {/* Dinamikus Sorozatok bevitele */}
+                {ex.sets.map((set, setIdx) => (
                   <View
-                    key={sIdx}
-                    style={[
-                      styles.setRow,
-                      set.completed && styles.setRowCompleted,
-                    ]}
+                    key={setIdx}
+                    style={[styles.setRowItem, set.completed && styles.setRowItemCompleted]}
                   >
-                    <Text style={styles.setNumberText}>{set.setNumber}</Text>
+                    <Text style={styles.setIndexText}>{set.setNumber}</Text>
 
-                    <TextInput
-                      style={styles.setInput}
-                      keyboardType="numeric"
-                      value={set.weightKg.toString()}
-                      onChangeText={(val) =>
-                        handleUpdateSetValue(exIdx, sIdx, 'weightKg', val)
-                      }
-                    />
+                    {/* Súly & Ismétlés mezők */}
+                    {ex.trackingType === 'reps_and_weight' && (
+                      <>
+                        <TextInput
+                          style={styles.setInputField}
+                          keyboardType="numeric"
+                          value={set.weightKg !== undefined ? String(set.weightKg) : ''}
+                          onChangeText={(val) => handleUpdateSetValue(exIdx, setIdx, 'weightKg', val)}
+                          placeholder="0"
+                        />
+                        <TextInput
+                          style={styles.setInputField}
+                          keyboardType="numeric"
+                          value={set.reps !== undefined ? String(set.reps) : ''}
+                          onChangeText={(val) => handleUpdateSetValue(exIdx, setIdx, 'reps', val)}
+                          placeholder="0"
+                        />
+                      </>
+                    )}
 
-                    <TextInput
-                      style={styles.setInput}
-                      keyboardType="number-pad"
-                      value={set.reps.toString()}
-                      onChangeText={(val) =>
-                        handleUpdateSetValue(exIdx, sIdx, 'reps', val)
-                      }
-                    />
+                    {/* Csak ismétlés mező */}
+                    {ex.trackingType === 'reps_only' && (
+                      <TextInput
+                        style={[styles.setInputField, { flex: 2 }]}
+                        keyboardType="numeric"
+                        value={set.reps !== undefined ? String(set.reps) : ''}
+                        onChangeText={(val) => handleUpdateSetValue(exIdx, setIdx, 'reps', val)}
+                        placeholder="10"
+                      />
+                    )}
 
+                    {/* Időtartam mező */}
+                    {ex.trackingType === 'time_hold' && (
+                      <TextInput
+                        style={[styles.setInputField, { flex: 2 }]}
+                        keyboardType="numeric"
+                        value={set.durationSeconds !== undefined ? String(set.durationSeconds) : ''}
+                        onChangeText={(val) => handleUpdateSetValue(exIdx, setIdx, 'durationSeconds', val)}
+                        placeholder="45"
+                      />
+                    )}
+
+                    {/* Pipálás gomb */}
                     <TouchableOpacity
-                      style={[
-                        styles.checkSetBtn,
-                        set.completed && styles.checkSetBtnDone,
-                      ]}
-                      onPress={() => handleToggleSetComplete(exIdx, sIdx)}
+                      style={[styles.checkSetBtn, set.completed && styles.checkSetBtnDone]}
+                      onPress={() => handleToggleSetComplete(exIdx, setIdx)}
                     >
                       <Text style={[styles.checkSetText, set.completed && styles.checkSetTextDone]}>
                         {set.completed ? '✓' : '○'}
@@ -327,43 +735,480 @@ const ExerciseScreen = ({ navigation }: any) => {
                   </View>
                 ))}
 
-                <TouchableOpacity
-                  style={styles.addSetBtn}
-                  onPress={() => handleAddSet(exIdx)}
-                >
-                  <Text style={styles.addSetBtnText}>+ Sorozat hozzáadása</Text>
-                </TouchableOpacity>
+                {/* Műveletek: Sorozat hozzáadása / Sorozat törlése */}
+                <View style={styles.exActionsRow}>
+                  <TouchableOpacity
+                    style={styles.addSetActionBtn}
+                    onPress={() => handleAddSetToExercise(exIdx)}
+                  >
+                    <Text style={styles.addSetActionText}>+ Sorozat hozzáadása</Text>
+                  </TouchableOpacity>
+
+                  {ex.sets.length > 1 && (
+                    <TouchableOpacity
+                      onPress={() => handleRemoveSet(exIdx, ex.sets.length - 1)}
+                      style={{ paddingHorizontal: 10, paddingVertical: 6 }}
+                    >
+                      <Text style={{ fontSize: 11, color: '#EF4444', fontWeight: '600' }}>
+                        - Utolsó törlése
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             ))}
 
-            {/* Megjegyzések mező */}
-            <View style={styles.notesBox}>
-              <Text style={styles.notesLabel}>Edzés megjegyzés (opcionális):</Text>
+            {/* További gyakorlat felvétele élő edzés közben */}
+            <TouchableOpacity
+              style={styles.addMoreExLiveBtn}
+              onPress={() => openExercisePicker('active_workout')}
+            >
+              <Text style={styles.addMoreExLiveBtnText}>+ Gyakorlat hozzáadása az edzéshez</Text>
+            </TouchableOpacity>
+
+            {/* Edzésjegyzetek */}
+            <View style={styles.notesContainer}>
+              <Text style={styles.notesLabel}>Edzés jegyzetek (opcionális):</Text>
               <TextInput
                 style={styles.notesInput}
-                placeholder="Pl. Kiváló energia, guggolás könnyen ment"
-                placeholderTextColor={colors.neutral[400]}
+                placeholder="Hogy érezted magad? Sikerült új súlyt kipróbálni?"
+                placeholderTextColor="#94A3B8"
                 value={workoutNotes}
                 onChangeText={setWorkoutNotes}
+                multiline
               />
             </View>
 
-            {/* Befejezés gomb */}
+            {/* Edzés befejezése gomb */}
             <TouchableOpacity
-              style={styles.finishWorkoutButton}
+              style={styles.finishWorkoutPrimaryBtn}
               onPress={handleFinishWorkout}
-              disabled={isSaving}
+              disabled={isSavingSession}
             >
-              {isSaving ? (
-                <ActivityIndicator color="#FFFFFF" />
+              {isSavingSession ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={styles.finishWorkoutButtonText}>✓ Edzés Befejezése & Mentés</Text>
+                <Text style={styles.finishWorkoutBtnText}>Edzés Befejezése & Mentés ✓</Text>
               )}
             </TouchableOpacity>
+
+            <View style={{ height: 40 }} />
           </ScrollView>
         </View>
       </Modal>
-    </ScrollView>
+
+      {/* ========================================================================= */}
+      {/* MODAL 2: ÚJ EGYÉNI EDZÉSTERV LÉTREHOZÁSA (PLAN CREATOR) */}
+      {/* ========================================================================= */}
+      <Modal
+        visible={planModalVisible}
+        animationType="slide"
+        onRequestClose={() => setPlanModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.creatorModalContainer}
+        >
+          <View style={styles.creatorHeader}>
+            <Text style={styles.creatorHeaderTitle}>Új Edzésterv Tervezése</Text>
+            <TouchableOpacity
+              onPress={() => setPlanModalVisible(false)}
+              style={styles.creatorCloseBtn}
+            >
+              <Text style={styles.creatorCloseBtnText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 18 }}>
+            <Text style={styles.formLabel}>Edzésterv neve *</Text>
+            <TextInput
+              style={styles.formInput}
+              placeholder="pl. PPL - Push Pull Legs, Saját Lábnap"
+              placeholderTextColor="#94A3B8"
+              value={newPlanName}
+              onChangeText={setNewPlanName}
+            />
+
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.formLabel}>Gyakoriság</Text>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder="pl. 3 nap / hét"
+                  placeholderTextColor="#94A3B8"
+                  value={newPlanFrequency}
+                  onChangeText={setNewPlanFrequency}
+                />
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.formLabel}>Becsült idő</Text>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder="pl. 60 perc"
+                  placeholderTextColor="#94A3B8"
+                  value={newPlanDuration}
+                  onChangeText={setNewPlanDuration}
+                />
+              </View>
+            </View>
+
+            <Text style={styles.formLabel}>Kategória / Fókusz</Text>
+            <View style={styles.categoryPillsRow}>
+              {['Izomtömeg-növelés', 'Erőnlét', 'Szálkásítás', 'Állóképesség'].map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.categoryPill,
+                    newPlanCategory === cat && styles.categoryPillActive,
+                  ]}
+                  onPress={() => setNewPlanCategory(cat)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryPillText,
+                      newPlanCategory === cat && styles.categoryPillTextActive,
+                    ]}
+                  >
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.formLabel}>Leírás (opcionális)</Text>
+            <TextInput
+              style={[styles.formInput, { height: 60 }]}
+              placeholder="Rövid leírás a terv céljairól..."
+              placeholderTextColor="#94A3B8"
+              value={newPlanDescription}
+              onChangeText={setNewPlanDescription}
+              multiline
+            />
+
+            {/* Tervben lévő gyakorlatok */}
+            <View style={styles.planExercisesHeaderRow}>
+              <Text style={styles.sectionHeaderTitle}>
+                Gyakorlatok ({newPlanExercises.length})
+              </Text>
+              <TouchableOpacity
+                style={styles.addExToPlanBtn}
+                onPress={() => openExercisePicker('plan_creator')}
+              >
+                <Text style={styles.addExToPlanBtnText}>+ Gyakorlat hozzáadása</Text>
+              </TouchableOpacity>
+            </View>
+
+            {newPlanExercises.length === 0 ? (
+              <View style={styles.emptyExBox}>
+                <Text style={styles.emptyExText}>Még nem adtál hozzá gyakorlatot a tervhez.</Text>
+                <Text style={styles.emptyExSub}>Kattints a fenti "+ Gyakorlat hozzáadása" gombra!</Text>
+              </View>
+            ) : (
+              newPlanExercises.map((ex, idx) => (
+                <View key={idx} style={styles.addedExItemCard}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.addedExName}>{ex.name}</Text>
+                    <Text style={styles.addedExMeta}>
+                      Alapértelmezett: {ex.defaultSets} sorozat{' '}
+                      {ex.trackingType === 'reps_and_weight'
+                        ? `• ${ex.defaultWeight || 60} kg x ${ex.defaultReps || 10} ism`
+                        : ex.trackingType === 'reps_only'
+                        ? `• ${ex.defaultReps || 10} ism`
+                        : `• ${ex.defaultDurationSeconds || 45} mp`}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setNewPlanExercises((prev) => prev.filter((_, i) => i !== idx));
+                    }}
+                    style={styles.removeExBtn}
+                  >
+                    <Text style={styles.removeExBtnText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              ))
+            )}
+
+            <TouchableOpacity
+              style={styles.savePlanPrimaryBtn}
+              onPress={handleSaveNewPlan}
+              disabled={isSavingPlan}
+            >
+              {isSavingPlan ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.savePlanPrimaryBtnText}>Edzésterv Mentése 💾</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* MODAL 3: GYAKORLAT VÁLASZTÓ (EXERCISE PICKER MODAL) KERESŐVEL ÉS SZŰRŐKKEL */}
+      {/* ========================================================================= */}
+      <Modal
+        visible={pickerModalVisible}
+        animationType="slide"
+        onRequestClose={() => setPickerModalVisible(false)}
+      >
+        <View style={styles.pickerModalContainer}>
+          <View style={styles.pickerHeader}>
+            <Text style={styles.pickerHeaderTitle}>Gyakorlat Kiválasztása</Text>
+            <TouchableOpacity
+              onPress={() => setPickerModalVisible(false)}
+              style={styles.pickerCloseBtn}
+            >
+              <Text style={styles.pickerCloseBtnText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Keresőmező */}
+          <View style={styles.searchBarWrapper}>
+            <TextInput
+              style={styles.searchBarInput}
+              placeholder="Keresés név szerint (pl. Fekvenyomás, Húzódzkodás)..."
+              placeholderTextColor="#94A3B8"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+
+          {/* Kategória szűrő chipek */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryFilterRow}
+          >
+            {['Összes', 'Saját testsúly', 'Súlyzós', 'Mobilitás'].map((cat) => (
+              <TouchableOpacity
+                key={cat}
+                style={[
+                  styles.catChip,
+                  selectedCategoryFilter === cat && styles.catChipActive,
+                ]}
+                onPress={() => setSelectedCategoryFilter(cat)}
+              >
+                <Text
+                  style={[
+                    styles.catChipText,
+                    selectedCategoryFilter === cat && styles.catChipTextActive,
+                  ]}
+                >
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Új egyéni gyakorlat létrehozása gomb */}
+          <TouchableOpacity
+            style={styles.createCustomExRowBtn}
+            onPress={() => setCustomExModalVisible(true)}
+          >
+            <Text style={styles.createCustomExRowText}>
+              + Nem találod? Hozz létre új egyéni gyakorlatot!
+            </Text>
+          </TouchableOpacity>
+
+          {/* Gyakorlatok listája */}
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 }}>
+            {filteredExercises.map((ex) => {
+              const currentUserId = auth.currentUser?.uid;
+              const canDelete = Boolean(
+                ex.isCustom &&
+                ((currentUserId && ex.userId === currentUserId) || (!currentUserId && ex.userId === 'guest'))
+              );
+
+              return (
+                <View key={ex.id} style={styles.exerciseListItem}>
+                  <TouchableOpacity
+                    style={{ flex: 1 }}
+                    onPress={() => handleSelectExercise(ex)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <Text style={styles.exListTitle}>{ex.name}</Text>
+                      {ex.isCustom && (
+                        <View style={styles.customBadge}>
+                          <Text style={styles.customBadgeText}>[Saját]</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.exListEnglishName}>{ex.englishName}</Text>
+                    <View style={styles.exBadgesRow}>
+                      <View style={styles.exBadge}>
+                        <Text style={styles.exBadgeText}>
+                          {ex.category === 'calisthenics'
+                            ? 'Saját testsúly'
+                            : ex.category === 'gym'
+                            ? 'Súlyzós'
+                            : 'Mobilitás'}
+                        </Text>
+                      </View>
+                      <View style={[styles.exBadge, { backgroundColor: '#FEF3C7' }]}>
+                        <Text style={[styles.exBadgeText, { color: '#B45309' }]}>
+                          {ex.muscleGroup.toUpperCase()}
+                        </Text>
+                      </View>
+                      <View style={[styles.exBadge, { backgroundColor: '#F3E8FF' }]}>
+                        <Text style={[styles.exBadgeText, { color: '#7E22CE' }]}>
+                          {ex.trackingType === 'reps_and_weight'
+                            ? 'Súly & Ism'
+                            : ex.trackingType === 'reps_only'
+                            ? 'Ismétlés'
+                            : 'Időtartam'}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+
+                  <View style={styles.exActionButtons}>
+                    {canDelete && (
+                      <TouchableOpacity
+                        style={styles.exDeleteIconBtn}
+                        onPress={() => handleDeleteCustomExercise(ex)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityLabel="Gyakorlat törlése"
+                      >
+                        <Text style={{ fontSize: 15 }}>🗑️</Text>
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                      style={styles.exSelectArrow}
+                      onPress={() => handleSelectExercise(ex)}
+                    >
+                      <Text style={{ fontSize: 18, color: colors.primary, fontWeight: '700' }}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* MODAL 4: ÚJ EGYÉNI GYAKORLAT DEFINIÁLÁSA */}
+      {/* ========================================================================= */}
+      <Modal
+        visible={customExModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCustomExModalVisible(false)}
+      >
+        <View style={styles.customExOverlay}>
+          <View style={styles.customExCard}>
+            <View style={styles.customExHeaderRow}>
+              <Text style={styles.customExTitle}>Új Gyakorlat Hozzáadása</Text>
+              <TouchableOpacity
+                onPress={() => setCustomExModalVisible(false)}
+                style={styles.customExCloseBtn}
+              >
+                <Text style={styles.customExCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.formLabel}>Gyakorlat magyar neve *</Text>
+            <TextInput
+              style={styles.formInput}
+              placeholder="pl. Oldalemelés kézisúlyzóval"
+              placeholderTextColor="#94A3B8"
+              value={customExName}
+              onChangeText={setCustomExName}
+            />
+
+            <Text style={styles.formLabel}>Angol elnevezés (opcionális)</Text>
+            <TextInput
+              style={styles.formInput}
+              placeholder="pl. Lateral Raise"
+              placeholderTextColor="#94A3B8"
+              value={customExEnglishName}
+              onChangeText={setCustomExEnglishName}
+            />
+
+            <Text style={styles.formLabel}>Kategória</Text>
+            <View style={styles.categoryPillsRow}>
+              {(['gym', 'calisthenics', 'mobility'] as ExerciseCategory[]).map((c) => (
+                <TouchableOpacity
+                  key={c}
+                  style={[styles.categoryPill, customExCategory === c && styles.categoryPillActive]}
+                  onPress={() => setCustomExCategory(c)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryPillText,
+                      customExCategory === c && styles.categoryPillTextActive,
+                    ]}
+                  >
+                    {c === 'gym' ? 'Súlyzós' : c === 'calisthenics' ? 'Saját testsúly' : 'Mobilitás'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.formLabel}>Cél izomcsoport</Text>
+            <View style={styles.categoryPillsRow}>
+              {(['mellkas', 'hat', 'vall', 'lab', 'kar', 'torzs'] as MuscleGroup[]).map((mg) => (
+                <TouchableOpacity
+                  key={mg}
+                  style={[styles.categoryPill, customExMuscle === mg && styles.categoryPillActive]}
+                  onPress={() => setCustomExMuscle(mg)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryPillText,
+                      customExMuscle === mg && styles.categoryPillTextActive,
+                    ]}
+                  >
+                    {mg}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.formLabel}>Mérés módja (Tracking Type)</Text>
+            <View style={styles.categoryPillsRow}>
+              {(['reps_and_weight', 'reps_only', 'time_hold'] as TrackingType[]).map((tt) => (
+                <TouchableOpacity
+                  key={tt}
+                  style={[styles.categoryPill, customExTracking === tt && styles.categoryPillActive]}
+                  onPress={() => setCustomExTracking(tt)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryPillText,
+                      customExTracking === tt && styles.categoryPillTextActive,
+                    ]}
+                  >
+                    {tt === 'reps_and_weight'
+                      ? 'Súly & Ismétlés'
+                      : tt === 'reps_only'
+                      ? 'Csak Ismétlés'
+                      : 'Időtartam (mp)'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={styles.saveCustomExBtn}
+              onPress={handleSaveCustomExercise}
+              disabled={isCreatingEx}
+            >
+              {isCreatingEx ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.saveCustomExBtnText}>Mentés az Adatbázisba ✓</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 };
 
@@ -372,164 +1217,201 @@ export default ExerciseScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFC',
   },
-  contentContainer: {
-    padding: 16,
-    paddingBottom: 36,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginTop: 6,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: colors.neutral[500],
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  statsBanner: {
+
+  // 1. SEGMENTED CONTROL
+  segmentContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#E8F8F0',
-    padding: 14,
+    backgroundColor: '#E2E8F0',
     borderRadius: 14,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#BBF7D0',
+    marginHorizontal: 16,
+    marginTop: 14,
+    marginBottom: 10,
+    padding: 3,
   },
-  statsBannerLeft: {
-    flexDirection: 'row',
+  segmentBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  statsBannerEmoji: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  statsBannerTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.secondary,
-  },
-  statsBannerSubtitle: {
-    fontSize: 11,
-    color: colors.neutral[600],
-    marginTop: 1,
-  },
-  statsBannerArrow: {
-    fontSize: 22,
-    color: colors.secondary,
-    fontWeight: '300',
-  },
-  sectionHeader: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 12,
-  },
-  planCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
+  segmentBtnActive: {
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
     elevation: 2,
+  },
+  segmentText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  segmentTextActive: {
+    color: colors.neutral[900],
+    fontWeight: '800',
+  },
+
+  scrollList: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 32,
+  },
+
+  // PRIMARY CTA: Új Edzésterv
+  createPlanPrimaryBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  createPlanPrimaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+
+  // EDZÉSTERV KÁRTYA
+  planCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: colors.neutral[200],
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   planCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  planTitleCol: {
-    flex: 1,
+  planCardEmoji: {
+    fontSize: 20,
   },
-  planName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
+  planCardTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  planCategory: {
+  planCardMeta: {
     fontSize: 12,
-    color: colors.primary,
     fontWeight: '600',
+    color: colors.primary,
+    marginTop: 3,
+  },
+  deletePlanBtn: {
+    padding: 6,
+  },
+  deletePlanBtnText: {
+    fontSize: 16,
+  },
+  templateBadge: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  templateBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: 0.5,
+  },
+  planCardDesc: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 18,
+    marginBottom: 12,
     marginTop: 2,
   },
-  durationBadge: {
-    backgroundColor: '#EEF2F6',
-    paddingHorizontal: 10,
+  planChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 14,
+  },
+  miniExChip: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
-  durationBadgeText: {
+  miniExChipText: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.neutral[700],
+    color: '#334155',
   },
-  planDescription: {
-    fontSize: 13,
-    color: colors.neutral[600],
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  exercisePreviewBox: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-  },
-  exercisePreviewHeader: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.neutral[500],
-    marginBottom: 6,
-    letterSpacing: 0.5,
-  },
-  exercisePreviewRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 2,
-  },
-  exerciseDot: {
-    fontSize: 12,
-    color: colors.primary,
-    marginRight: 6,
-  },
-  exerciseNameText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-    flex: 1,
-  },
-  exerciseSetsText: {
-    fontSize: 12,
-    color: colors.neutral[500],
-  },
-  startWorkoutButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 13,
+  openPlanBtn: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: colors.primary,
     borderRadius: 12,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  startWorkoutButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: 'bold',
+  openPlanBtnText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '800',
   },
-  activeWorkoutContainer: {
+  templateHeaderNote: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 12,
+    fontWeight: '500',
+  },
+
+  // EMPTY STATE
+  emptyStateCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 28,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginTop: 10,
+  },
+  emptyEmoji: {
+    fontSize: 40,
+    marginBottom: 10,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 19,
+  },
+
+  // ==========================================
+  // AKTÍV EDZÉS MODAL STÍLUSOK
+  // ==========================================
+  activeModalWrapper: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFC',
   },
   activeHeader: {
     flexDirection: 'row',
@@ -537,12 +1419,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#1E293B',
-    paddingTop: 45,
+    backgroundColor: '#0F172A',
+    paddingTop: Platform.OS === 'ios' ? 50 : 20,
   },
   activeWorkoutTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '800',
     color: '#FFFFFF',
   },
   activeWorkoutTimer: {
@@ -551,33 +1433,34 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 2,
   },
-  closeWorkoutBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#334155',
-    justifyContent: 'center',
+  closeActiveBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#1E293B',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  closeWorkoutBtnText: {
+  closeActiveBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
   },
-  activeScrollView: {
+  activeExercisesScroll: {
     flex: 1,
   },
-  activeScrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
   activeExCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 14,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: colors.neutral[200],
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   activeExHeader: {
     flexDirection: 'row',
@@ -585,133 +1468,533 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  activeExName: {
+  activeExTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.text,
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  activeMuscleTag: {
-    backgroundColor: '#EBF3FF',
+  trackingTypeBadge: {
+    backgroundColor: '#EFF6FF',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
-  activeMuscleTagText: {
-    fontSize: 11,
+  trackingTypeBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
     color: colors.primary,
-    fontWeight: 'bold',
   },
-  setsTableHeader: {
+
+  // Sorozatok táblázata
+  setHeaderRow: {
     flexDirection: 'row',
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[300],
+    borderBottomColor: '#F1F5F9',
     marginBottom: 6,
   },
-  setsHeaderCell: {
+  setHeaderCell: {
     fontSize: 10,
-    fontWeight: 'bold',
-    color: colors.neutral[500],
+    fontWeight: '800',
+    color: '#94A3B8',
+    letterSpacing: 0.5,
   },
-  setRow: {
+  setRowItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 4,
-    paddingVertical: 4,
+    paddingVertical: 5,
     paddingHorizontal: 6,
     borderRadius: 8,
+    marginVertical: 2,
   },
-  setRowCompleted: {
-    backgroundColor: '#E8F8F0',
+  setRowItemCompleted: {
+    backgroundColor: '#DCFCE7',
   },
-  setNumberText: {
-    width: 34,
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.neutral[600],
+  setIndexText: {
+    width: 36,
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#64748B',
   },
-  setInput: {
+  setInputField: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: 6,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 6,
-    marginRight: 8,
     fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.text,
+    fontWeight: '700',
+    color: '#0F172A',
     textAlign: 'center',
+    marginRight: 8,
   },
   checkSetBtn: {
     width: 44,
     height: 36,
-    borderRadius: 6,
-    backgroundColor: colors.neutral[200],
-    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   checkSetBtnDone: {
-    backgroundColor: colors.secondary,
+    backgroundColor: '#10B981',
   },
   checkSetText: {
     fontSize: 16,
-    color: colors.neutral[600],
+    color: '#94A3B8',
+    fontWeight: '800',
   },
   checkSetTextDone: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
   },
-  addSetBtn: {
-    paddingVertical: 8,
+  exActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 8,
   },
-  addSetBtnText: {
+  addSetActionBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  addSetActionText: {
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: colors.primary,
   },
-  notesBox: {
-    backgroundColor: colors.surface,
+  addMoreExLiveBtn: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1.5,
+    borderColor: '#BFDBFE',
     borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  addMoreExLiveBtnText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
+  notesContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 14,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: colors.neutral[200],
+    borderColor: '#E2E8F0',
   },
   notesLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
+    fontWeight: '700',
+    color: '#334155',
     marginBottom: 6,
   },
   notesInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
+    padding: 10,
     fontSize: 13,
-    color: colors.text,
+    color: '#0F172A',
+    height: 60,
   },
-  finishWorkoutButton: {
-    backgroundColor: colors.secondary,
+  finishWorkoutPrimaryBtn: {
+    backgroundColor: '#10B981',
+    borderRadius: 16,
     paddingVertical: 16,
-    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.secondary,
+    shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 4,
   },
-  finishWorkoutButtonText: {
+  finishWorkoutBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+
+  // ==========================================
+  // PLAN CREATOR MODAL STÍLUSOK
+  // ==========================================
+  creatorModalContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  creatorHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+  },
+  creatorHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  creatorCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  creatorCloseBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  formLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#334155',
+    marginBottom: 6,
+  },
+  formInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#0F172A',
+    marginBottom: 14,
+  },
+  categoryPillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 14,
+  },
+  categoryPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  categoryPillActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  categoryPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  categoryPillTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  planExercisesHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 10,
+  },
+  sectionHeaderTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  addExToPlanBtn: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  addExToPlanBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  emptyExBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 20,
+  },
+  emptyExText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  emptyExSub: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  addedExItemCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  addedExName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  addedExMeta: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  removeExBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeExBtnText: {
+    fontSize: 12,
+    color: '#DC2626',
+    fontWeight: '700',
+  },
+  savePlanPrimaryBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  savePlanPrimaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+
+  // ==========================================
+  // EXERCISE PICKER MODAL STÍLUSOK
+  // ==========================================
+  pickerModalContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+  },
+  pickerHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  pickerCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pickerCloseBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  searchBarWrapper: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  searchBarInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: '#0F172A',
+  },
+  categoryFilterRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  catChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+  },
+  catChipActive: {
+    backgroundColor: colors.primary,
+  },
+  catChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  catChipTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  createCustomExRowBtn: {
+    marginHorizontal: 16,
+    marginBottom: 10,
+    paddingVertical: 8,
+  },
+  createCustomExRowText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  exerciseListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 8,
+  },
+  exListTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  exListEnglishName: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 1,
+  },
+  exBadgesRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 6,
+  },
+  exBadge: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  exBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  exSelectArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  customBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  customBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#D97706',
+  },
+  exActionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginLeft: 8,
+  },
+  exDeleteIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // ==========================================
+  // CUSTOM EXERCISE DEFINITION MODAL
+  // ==========================================
+  customExOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  customExCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    maxHeight: '90%',
+  },
+  customExHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  customExTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  customExCloseBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  customExCloseText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  saveCustomExBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  saveCustomExBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

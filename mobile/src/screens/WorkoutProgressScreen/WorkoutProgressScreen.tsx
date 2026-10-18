@@ -274,12 +274,12 @@ const WorkoutProgressScreen = ({ navigation }: any) => {
               <View style={styles.exerciseList}>
                 {log.exercises.map((ex, exIdx) => {
                   const completedCount = ex.sets.filter((s) => s.completed).length;
-                  const maxW = Math.max(0, ...ex.sets.map((s) => s.weightKg));
+                  const maxW = Math.max(0, ...ex.sets.map((s) => s.weightKg || 0));
                   return (
                     <View key={exIdx} style={styles.exerciseListItem}>
                       <Text style={styles.bulletPoint}>•</Text>
                       <Text style={styles.exerciseListText}>
-                        {ex.name}: {completedCount} széria (max {maxW} kg)
+                        {ex.name}: {completedCount} széria{maxW > 0 ? ` (max ${maxW} kg)` : ''}
                       </Text>
                     </View>
                   );
