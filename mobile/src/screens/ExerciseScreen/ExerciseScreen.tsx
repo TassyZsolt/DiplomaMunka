@@ -32,9 +32,9 @@ import {
   ExerciseCategory,
   MuscleGroup,
   fetchAvailableExercises,
-  createCustomExercise,
   deleteCustomExercise,
 } from '../../services/exerciseService';
+import {CustomExerciseModal} from '../../components/exercise/CustomExerciseModal';
 
 const ExerciseScreen = ({ navigation }: any) => {
   // 1. Fő nézet tab: 'custom' (Saját Terveim) | 'templates' (Sablonok)
@@ -72,14 +72,8 @@ const ExerciseScreen = ({ navigation }: any) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('Összes');
 
-  // 7. Új Egyéni Gyakorlat definiálása Modal
+  // 7. Új Egyéni Gyakorlat Modal
   const [customExModalVisible, setCustomExModalVisible] = useState<boolean>(false);
-  const [customExName, setCustomExName] = useState<string>('');
-  const [customExEnglishName, setCustomExEnglishName] = useState<string>('');
-  const [customExCategory, setCustomExCategory] = useState<ExerciseCategory>('gym');
-  const [customExMuscle, setCustomExMuscle] = useState<MuscleGroup>('mellkas');
-  const [customExTracking, setCustomExTracking] = useState<TrackingType>('reps_and_weight');
-  const [isCreatingEx, setIsCreatingEx] = useState<boolean>(false);
 
   // Adatok betöltése
   const loadAllData = async () => {
@@ -89,7 +83,7 @@ const ExerciseScreen = ({ navigation }: any) => {
       // Sablonok betöltése
       setTemplatePlans(getWorkoutPlans());
 
-      // Saját tervek és gyakorlat adatbázis betöltése
+      // adatbázis betöltése
       const [userPlans, allExs] = await Promise.all([
         getCustomWorkoutPlans(),
         fetchAvailableExercises(auth.currentUser?.uid),
@@ -317,36 +311,6 @@ const ExerciseScreen = ({ navigation }: any) => {
     setPickerModalVisible(false);
   };
 
-  // Új egyéni gyakorlat mentése
-  const handleSaveCustomExercise = async () => {
-    if (!customExName.trim()) {
-      Alert.alert('Hiba', 'Kérlek add meg a gyakorlat nevét!');
-      return;
-    }
-
-    try {
-      setIsCreatingEx(true);
-      const created = await createCustomExercise({
-        name: customExName.trim(),
-        englishName: customExEnglishName.trim() || customExName.trim(),
-        category: customExCategory,
-        muscleGroup: customExMuscle,
-        trackingType: customExTracking,
-        equipment: 'none',
-      });
-
-      // Frissítés a lokális listában
-      setExercisesDb((prev) => [created, ...prev]);
-      setCustomExName('');
-      setCustomExEnglishName('');
-      setCustomExModalVisible(false);
-      Alert.alert('Sikeres létrehozás 🎉', `A(z) "${created.name}" gyakorlat bekerült a listába!`);
-    } catch (e: any) {
-      Alert.alert('Hiba', e.message || 'Nem sikerült létrehozni a gyakorlatot.');
-    } finally {
-      setIsCreatingEx(false);
-    }
-  };
 
   // Egyéni gyakorlat törlése (csak a saját készítésű gyakorlatokra)
   const handleDeleteCustomExercise = (ex: ExerciseDoc) => {
@@ -1087,124 +1051,13 @@ const ExerciseScreen = ({ navigation }: any) => {
           </ScrollView>
         </View>
       </Modal>
-
-      {/* ========================================================================= */}
-      {/* MODAL 4: ÚJ EGYÉNI GYAKORLAT DEFINIÁLÁSA */}
-      {/* ========================================================================= */}
-      <Modal
-        visible={customExModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setCustomExModalVisible(false)}
-      >
-        <View style={styles.customExOverlay}>
-          <View style={styles.customExCard}>
-            <View style={styles.customExHeaderRow}>
-              <Text style={styles.customExTitle}>Új Gyakorlat Hozzáadása</Text>
-              <TouchableOpacity
-                onPress={() => setCustomExModalVisible(false)}
-                style={styles.customExCloseBtn}
-              >
-                <Text style={styles.customExCloseText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.formLabel}>Gyakorlat magyar neve *</Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder="pl. Oldalemelés kézisúlyzóval"
-              placeholderTextColor="#94A3B8"
-              value={customExName}
-              onChangeText={setCustomExName}
-            />
-
-            <Text style={styles.formLabel}>Angol elnevezés (opcionális)</Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder="pl. Lateral Raise"
-              placeholderTextColor="#94A3B8"
-              value={customExEnglishName}
-              onChangeText={setCustomExEnglishName}
-            />
-
-            <Text style={styles.formLabel}>Kategória</Text>
-            <View style={styles.categoryPillsRow}>
-              {(['gym', 'calisthenics', 'mobility'] as ExerciseCategory[]).map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  style={[styles.categoryPill, customExCategory === c && styles.categoryPillActive]}
-                  onPress={() => setCustomExCategory(c)}
-                >
-                  <Text
-                    style={[
-                      styles.categoryPillText,
-                      customExCategory === c && styles.categoryPillTextActive,
-                    ]}
-                  >
-                    {c === 'gym' ? 'Súlyzós' : c === 'calisthenics' ? 'Saját testsúly' : 'Mobilitás'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.formLabel}>Cél izomcsoport</Text>
-            <View style={styles.categoryPillsRow}>
-              {(['mellkas', 'hat', 'vall', 'lab', 'kar', 'torzs'] as MuscleGroup[]).map((mg) => (
-                <TouchableOpacity
-                  key={mg}
-                  style={[styles.categoryPill, customExMuscle === mg && styles.categoryPillActive]}
-                  onPress={() => setCustomExMuscle(mg)}
-                >
-                  <Text
-                    style={[
-                      styles.categoryPillText,
-                      customExMuscle === mg && styles.categoryPillTextActive,
-                    ]}
-                  >
-                    {mg}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.formLabel}>Mérés módja (Tracking Type)</Text>
-            <View style={styles.categoryPillsRow}>
-              {(['reps_and_weight', 'reps_only', 'time_hold'] as TrackingType[]).map((tt) => (
-                <TouchableOpacity
-                  key={tt}
-                  style={[styles.categoryPill, customExTracking === tt && styles.categoryPillActive]}
-                  onPress={() => setCustomExTracking(tt)}
-                >
-                  <Text
-                    style={[
-                      styles.categoryPillText,
-                      customExTracking === tt && styles.categoryPillTextActive,
-                    ]}
-                  >
-                    {tt === 'reps_and_weight'
-                      ? 'Súly & Ismétlés'
-                      : tt === 'reps_only'
-                      ? 'Csak Ismétlés'
-                      : 'Időtartam (mp)'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              style={styles.saveCustomExBtn}
-              onPress={handleSaveCustomExercise}
-              disabled={isCreatingEx}
-            >
-              {isCreatingEx ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <Text style={styles.saveCustomExBtnText}>Mentés az Adatbázisba ✓</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      
+        <CustomExerciseModal
+          visible={customExModalVisible}
+          onClose={() => setCustomExModalVisible(false)}
+          onExerciseCreated={(newEx) => setExercisesDb((prev) => [newEx, ...prev])}
+        />
+      
     </View>
   );
 };
