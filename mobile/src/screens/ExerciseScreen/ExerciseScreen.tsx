@@ -32,6 +32,7 @@ import {CustomExerciseModal} from '../../components/exercise/CustomExerciseModal
 import {ExercisePickerModal} from '../../components/exercise/ExercisePickerModal';
 import {PlanCreatorModal} from '../../components/exercise/PlanCreatorModal';
 import {ActiveWorkoutModal} from '../../components/exercise/ActiveWorkoutModal';
+import { WorkoutPlanCard } from '../../components/exercise/WorkoutPlanCard';
 
 const ExerciseScreen = ({ navigation }: any) => {
   // 1. Fő nézet tab: 'custom' (Saját Terveim) | 'templates' (Sablonok)
@@ -235,107 +236,28 @@ const ExerciseScreen = ({ navigation }: any) => {
               </View>
             ) : (
               customPlans.map((plan) => (
-                <View key={plan.id} style={styles.planCard}>
-                  <View style={styles.planCardHeader}>
-                    <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={styles.planCardEmoji}>🏋️</Text>
-                        <Text style={styles.planCardTitle}>{plan.name}</Text>
-                      </View>
-                      <Text style={styles.planCardMeta}>
-                        {plan.frequency || '3 nap / hét'} • {plan.category} • {plan.durationEst}
-                      </Text>
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={() => handleDeletePlan(plan)}
-                      style={styles.deletePlanBtn}
-                    >
-                      <Text style={styles.deletePlanBtnText}>🗑️</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <Text style={styles.planCardDesc} numberOfLines={2}>
-                    {plan.description}
-                  </Text>
-
-                  {/* Gyakorlatok összefoglaló chipek */}
-                  <View style={styles.planChipsRow}>
-                    {plan.exercises.slice(0, 4).map((ex, idx) => (
-                      <View key={idx} style={styles.miniExChip}>
-                        <Text style={styles.miniExChipText}>• {ex.name}</Text>
-                      </View>
-                    ))}
-                    {plan.exercises.length > 4 && (
-                      <View style={[styles.miniExChip, { backgroundColor: '#E2E8F0' }]}>
-                        <Text style={[styles.miniExChipText, { color: colors.neutral[700] }]}>
-                          +{plan.exercises.length - 4}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <TouchableOpacity
-                    style={styles.openPlanBtn}
-                    activeOpacity={0.85}
-                    onPress={() => handleStartWorkout(plan)}
-                  >
-                    <Text style={styles.openPlanBtnText}>Megnyitás & Edzés Indítása ▶</Text>
-                  </TouchableOpacity>
-                </View>
+                <WorkoutPlanCard
+                  key={plan.id}
+                  plan={plan}
+                  onStartWorkout={handleStartWorkout}
+                  onDeletePlan={handleDeletePlan}
+                />
               ))
             )}
           </View>
         ) : (
-          /* --- SABLONOK TAB (5 Predefiniált edzésterv) --- */
-          <View>
+          /*  sablonok (5  edzésterv)  */
+          <View>Predefiniált
             <Text style={styles.templateHeaderNote}>
               Válassz egyet a fitnesz szakértők által összeállított, beépített edzéstervekből:
             </Text>
 
             {templatePlans.map((plan) => (
-              <View key={plan.id} style={styles.planCard}>
-                <View style={styles.planCardHeader}>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={styles.planCardEmoji}>
-                        {plan.id === 'ppl' ? '🏋️' : plan.id === 'beginner_full_body' ? '🏃' : '⚡'}
-                      </Text>
-                      <Text style={styles.planCardTitle}>{plan.name}</Text>
-                    </View>
-                    <Text style={styles.planCardMeta}>
-                      {plan.frequency || '3 nap / hét'} • {plan.category} • {plan.durationEst}
-                    </Text>
-                  </View>
-                  <View style={styles.templateBadge}>
-                    <Text style={styles.templateBadgeText}>SABLON</Text>
-                  </View>
-                </View>
-
-                <Text style={styles.planCardDesc}>{plan.description}</Text>
-
-                {/* Gyakorlat chipek */}
-                <View style={styles.planChipsRow}>
-                  {plan.exercises.map((ex, idx) => (
-                    <View key={idx} style={styles.miniExChip}>
-                      <Text style={styles.miniExChipText}>
-                        • {ex.name}{' '}
-                        <Text style={{ fontSize: 10, color: colors.neutral[500] }}>
-                          ({ex.defaultSets}x)
-                        </Text>
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-
-                <TouchableOpacity
-                  style={styles.openPlanBtn}
-                  activeOpacity={0.85}
-                  onPress={() => handleStartWorkout(plan)}
-                >
-                  <Text style={styles.openPlanBtnText}>Megnyitás & Edzés Indítása ▶</Text>
-                </TouchableOpacity>
-              </View>
+              <WorkoutPlanCard
+                key={plan.id}
+                plan={plan}
+                onStartWorkout={handleStartWorkout}
+              />
             ))}
           </View>
         )}
