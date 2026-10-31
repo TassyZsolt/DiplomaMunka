@@ -268,16 +268,22 @@ export const saveCustomWorkoutPlan = async (
 
   if (user) {
     try {
-      const docRef = await addDoc(collection(db, 'workoutPlans'), {
-        ...newPlan,
-        userId: user.uid,
-      });
+      const { id, ...dataToSave } = newPlan;
+      const cleanPayload = JSON.parse(
+        JSON.stringify({
+          ...dataToSave,
+          userId: user.uid,
+        })
+      );
+      const docRef = await addDoc(collection(db, 'workoutPlans'), cleanPayload);
       newPlan.id = docRef.id;
     } catch (error) {
       console.warn('Nem sikerült elmenteni az edzéstervet Firestore-ba:', error);
+      throw error;
     }
   }
 
+  customPlansCache = [newPlan, ...customPlansCache.filter((p) => p.id !== newPlan.id)];
   return newPlan;
 };
 
@@ -374,13 +380,18 @@ export const saveWorkoutSession = async (
   // 1. Mentés a Firestore workoutSessions kollekcióba
   if (user) {
     try {
-      const docRef = await addDoc(collection(db, 'workoutSessions'), {
-        ...newSession,
-        userId: user.uid,
-      });
+      const { id, ...sessionToSave } = newSession;
+      const cleanPayload = JSON.parse(
+        JSON.stringify({
+          ...sessionToSave,
+          userId: user.uid,
+        })
+      );
+      const docRef = await addDoc(collection(db, 'workoutSessions'), cleanPayload);
       newSession.id = docRef.id;
     } catch (error) {
       console.warn('Nem sikerült elmenteni az edzést a Firestore-ba:', error);
+      throw error;
     }
   }
 
@@ -439,7 +450,8 @@ export const saveWorkoutSession = async (
         }
 
         if (isNewPr) {
-          await setDoc(prDocRef, prPayload, { merge: true });
+          const cleanPrPayload = JSON.parse(JSON.stringify(prPayload));
+          await setDoc(prDocRef, cleanPrPayload, { merge: true });
           console.log(`🏆 Új PR elmentve a Firestore-ba: ${ex.name} (${docId})`);
         }
       }

@@ -377,9 +377,11 @@ export const createCustomExercise = async (
 
   if (user) {
     try {
-      await setDoc(doc(db, 'exercises', newId), newExercise);
+      const cleanData = JSON.parse(JSON.stringify(newExercise));
+      await setDoc(doc(db, 'exercises', newId), cleanData);
     } catch (error) {
       console.warn('Nem sikerült elmenteni az egyéni gyakorlatot Firestore-ba:', error);
+      throw error;
     }
   }
 
