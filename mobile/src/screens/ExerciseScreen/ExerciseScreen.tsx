@@ -35,6 +35,7 @@ import {
   deleteCustomExercise,
 } from '../../services/exerciseService';
 import {CustomExerciseModal} from '../../components/exercise/CustomExerciseModal';
+import {ExercisePickerModal} from '../../components/exercise/ExercisePickerModal';
 
 const ExerciseScreen = ({ navigation }: any) => {
   // 1. Fő nézet tab: 'custom' (Saját Terveim) | 'templates' (Sablonok)
@@ -69,8 +70,7 @@ const ExerciseScreen = ({ navigation }: any) => {
   // 6. Gyakorlat választó (Exercise Picker Modal)
   const [pickerModalVisible, setPickerModalVisible] = useState<boolean>(false);
   const [pickerMode, setPickerMode] = useState<'plan_creator' | 'active_workout'>('plan_creator');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('Összes');
+
 
   // 7. Új Egyéni Gyakorlat Modal
   const [customExModalVisible, setCustomExModalVisible] = useState<boolean>(false);
@@ -269,8 +269,6 @@ const ExerciseScreen = ({ navigation }: any) => {
   // =========================================================================
   const openExercisePicker = (mode: 'plan_creator' | 'active_workout') => {
     setPickerMode(mode);
-    setSearchQuery('');
-    setSelectedCategoryFilter('Összes');
     setPickerModalVisible(true);
   };
 
@@ -392,21 +390,14 @@ const ExerciseScreen = ({ navigation }: any) => {
     );
   };
 
-  // Szűrt gyakorlatok keresés és kategória alapján
-  const filteredExercises = exercisesDb.filter((ex) => {
-    const matchesSearch =
-      ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ex.englishName.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (!matchesSearch) return false;
-
-    if (selectedCategoryFilter === 'Összes') return true;
-    if (selectedCategoryFilter === 'Saját testsúly') return ex.category === 'calisthenics';
-    if (selectedCategoryFilter === 'Súlyzós') return ex.category === 'gym';
-    if (selectedCategoryFilter === 'Mobilitás') return ex.category === 'mobility';
-
-    return true;
-  });
+ <ExercisePickerModal                                                                                                    
+      visible={pickerModalVisible}                                                                                          
+      exercises={exercisesDb}                                                                                               
+      onClose={() => setPickerModalVisible(false)}                                                                          
+      onSelectExercise={handleSelectExercise}                                                                               
+      onDeleteExercise={handleDeleteCustomExercise}                                                                         
+      onOpenCreateCustom={() => setCustomExModalVisible(true)}                                                              
+    />
 
   return (
     <View style={styles.container}>
@@ -907,157 +898,21 @@ const ExerciseScreen = ({ navigation }: any) => {
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
-
-      {/* ========================================================================= */}
-      {/* MODAL 3: GYAKORLAT VÁLASZTÓ (EXERCISE PICKER MODAL) KERESŐVEL ÉS SZŰRŐKKEL */}
-      {/* ========================================================================= */}
-      <Modal
+      <ExercisePickerModal
         visible={pickerModalVisible}
-        animationType="slide"
-        onRequestClose={() => setPickerModalVisible(false)}
-      >
-        <View style={styles.pickerModalContainer}>
-          <View style={styles.pickerHeader}>
-            <Text style={styles.pickerHeaderTitle}>Gyakorlat Kiválasztása</Text>
-            <TouchableOpacity
-              onPress={() => setPickerModalVisible(false)}
-              style={styles.pickerCloseBtn}
-            >
-              <Text style={styles.pickerCloseBtnText}>✕</Text>
-            </TouchableOpacity>
-          </View>
+        exercises={exercisesDb}
+        onClose={() => setPickerModalVisible(false)}
+        onSelectExercise={handleSelectExercise}
+        onDeleteExercise={handleDeleteCustomExercise}
+        onOpenCreateCustom={() => setCustomExModalVisible(true)}
+      />
 
-          {/* Keresőmező */}
-          <View style={styles.searchBarWrapper}>
-            <TextInput
-              style={styles.searchBarInput}
-              placeholder="Keresés név szerint (pl. Fekvenyomás, Húzódzkodás)..."
-              placeholderTextColor="#94A3B8"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
+      <CustomExerciseModal
+        visible={customExModalVisible}
+        onClose={() => setCustomExModalVisible(false)}
+        onExerciseCreated={(newEx) => setExercisesDb((prev) => [newEx, ...prev])}
+      />
 
-          {/* Kategória szűrő chipek */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryFilterRow}
-          >
-            {['Összes', 'Saját testsúly', 'Súlyzós', 'Mobilitás'].map((cat) => (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.catChip,
-                  selectedCategoryFilter === cat && styles.catChipActive,
-                ]}
-                onPress={() => setSelectedCategoryFilter(cat)}
-              >
-                <Text
-                  style={[
-                    styles.catChipText,
-                    selectedCategoryFilter === cat && styles.catChipTextActive,
-                  ]}
-                >
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {/* Új egyéni gyakorlat létrehozása gomb */}
-          <TouchableOpacity
-            style={styles.createCustomExRowBtn}
-            onPress={() => setCustomExModalVisible(true)}
-          >
-            <Text style={styles.createCustomExRowText}>
-              + Nem találod? Hozz létre új egyéni gyakorlatot!
-            </Text>
-          </TouchableOpacity>
-
-          {/* Gyakorlatok listája */}
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 }}>
-            {filteredExercises.map((ex) => {
-              const currentUserId = auth.currentUser?.uid;
-              const canDelete = Boolean(
-                ex.isCustom &&
-                ((currentUserId && ex.userId === currentUserId) || (!currentUserId && ex.userId === 'guest'))
-              );
-
-              return (
-                <View key={ex.id} style={styles.exerciseListItem}>
-                  <TouchableOpacity
-                    style={{ flex: 1 }}
-                    onPress={() => handleSelectExercise(ex)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                      <Text style={styles.exListTitle}>{ex.name}</Text>
-                      {ex.isCustom && (
-                        <View style={styles.customBadge}>
-                          <Text style={styles.customBadgeText}>[Saját]</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.exListEnglishName}>{ex.englishName}</Text>
-                    <View style={styles.exBadgesRow}>
-                      <View style={styles.exBadge}>
-                        <Text style={styles.exBadgeText}>
-                          {ex.category === 'calisthenics'
-                            ? 'Saját testsúly'
-                            : ex.category === 'gym'
-                            ? 'Súlyzós'
-                            : 'Mobilitás'}
-                        </Text>
-                      </View>
-                      <View style={[styles.exBadge, { backgroundColor: '#FEF3C7' }]}>
-                        <Text style={[styles.exBadgeText, { color: '#B45309' }]}>
-                          {ex.muscleGroup.toUpperCase()}
-                        </Text>
-                      </View>
-                      <View style={[styles.exBadge, { backgroundColor: '#F3E8FF' }]}>
-                        <Text style={[styles.exBadgeText, { color: '#7E22CE' }]}>
-                          {ex.trackingType === 'reps_and_weight'
-                            ? 'Súly & Ism'
-                            : ex.trackingType === 'reps_only'
-                            ? 'Ismétlés'
-                            : 'Időtartam'}
-                        </Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-
-                  <View style={styles.exActionButtons}>
-                    {canDelete && (
-                      <TouchableOpacity
-                        style={styles.exDeleteIconBtn}
-                        onPress={() => handleDeleteCustomExercise(ex)}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        accessibilityLabel="Gyakorlat törlése"
-                      >
-                        <Text style={{ fontSize: 15 }}>🗑️</Text>
-                      </TouchableOpacity>
-                    )}
-                    <TouchableOpacity
-                      style={styles.exSelectArrow}
-                      onPress={() => handleSelectExercise(ex)}
-                    >
-                      <Text style={{ fontSize: 18, color: colors.primary, fontWeight: '700' }}>+</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-        </View>
-      </Modal>
-      
-        <CustomExerciseModal
-          visible={customExModalVisible}
-          onClose={() => setCustomExModalVisible(false)}
-          onExerciseCreated={(newEx) => setExercisesDb((prev) => [newEx, ...prev])}
-        />
-      
     </View>
   );
 };
