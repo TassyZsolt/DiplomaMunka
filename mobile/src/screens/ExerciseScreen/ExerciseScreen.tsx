@@ -36,6 +36,7 @@ import {
 } from '../../services/exerciseService';
 import {CustomExerciseModal} from '../../components/exercise/CustomExerciseModal';
 import {ExercisePickerModal} from '../../components/exercise/ExercisePickerModal';
+import {PlanCreatorModal} from '../../components/exercise/PlanCreatorModal';
 
 const ExerciseScreen = ({ navigation }: any) => {
   // 1. Fő nézet tab: 'custom' (Saját Terveim) | 'templates' (Sablonok)
@@ -59,13 +60,7 @@ const ExerciseScreen = ({ navigation }: any) => {
 
   // 5. Új Egyéni Edzésterv Létrehozása Modal
   const [planModalVisible, setPlanModalVisible] = useState<boolean>(false);
-  const [newPlanName, setNewPlanName] = useState<string>('');
-  const [newPlanCategory, setNewPlanCategory] = useState<string>('Izomtömeg-növelés');
-  const [newPlanFrequency, setNewPlanFrequency] = useState<string>('3 nap / hét');
-  const [newPlanDuration, setNewPlanDuration] = useState<string>('60 perc');
-  const [newPlanDescription, setNewPlanDescription] = useState<string>('');
-  const [newPlanExercises, setNewPlanExercises] = useState<WorkoutPlanExercise[]>([]);
-  const [isSavingPlan, setIsSavingPlan] = useState<boolean>(false);
+ 
 
   // 6. Gyakorlat választó (Exercise Picker Modal)
   const [pickerModalVisible, setPickerModalVisible] = useState<boolean>(false);
@@ -273,21 +268,7 @@ const ExerciseScreen = ({ navigation }: any) => {
   };
 
   const handleSelectExercise = (ex: ExerciseDoc) => {
-    if (pickerMode === 'plan_creator') {
-      // Hozzáadás az új tervhez
-      const newPlanEx: WorkoutPlanExercise = {
-        exerciseId: ex.id,
-        name: ex.name,
-        trackingType: ex.trackingType,
-        muscleGroup: ex.muscleGroup,
-        defaultSets: 3,
-        defaultReps: ex.trackingType !== 'time_hold' ? 10 : undefined,
-        defaultWeight: ex.trackingType === 'reps_and_weight' ? 60 : undefined,
-        defaultDurationSeconds: ex.trackingType === 'time_hold' ? 45 : undefined,
-      };
-      setNewPlanExercises((prev) => [...prev, newPlanEx]);
-    } else {
-      // Hozzáadás az aktív edzéshez közvetlenül
+     {
       const newWorkoutEx: WorkoutExercise = {
         exerciseId: ex.id,
         name: ex.name,
@@ -304,6 +285,7 @@ const ExerciseScreen = ({ navigation }: any) => {
         ],
       };
       setWorkoutExercises((prev) => [...prev, newWorkoutEx]);
+      setPickerModalVisible(false);
     }
 
     setPickerModalVisible(false);
@@ -337,40 +319,7 @@ const ExerciseScreen = ({ navigation }: any) => {
   // =========================================================================
   // EGYÉNI EDZÉSTERV LÉTREHOZÁSA ÉS TÖRLÉSE
   // =========================================================================
-  const handleSaveNewPlan = async () => {
-    if (!newPlanName.trim()) {
-      Alert.alert('Hiányzó adat', 'Kérlek adj meg egy nevet az edzéstervnek!');
-      return;
-    }
-    if (newPlanExercises.length === 0) {
-      Alert.alert('Hiányzó gyakorlatok', 'Kérlek adj hozzá legalább 1 gyakorlatot a tervhez!');
-      return;
-    }
-
-    try {
-      setIsSavingPlan(true);
-      const saved = await saveCustomWorkoutPlan({
-        name: newPlanName.trim(),
-        category: newPlanCategory,
-        frequency: newPlanFrequency,
-        durationEst: newPlanDuration,
-        description: newPlanDescription.trim() || 'Egyéni edzésterv céljaid eléréséhez.',
-        exercises: newPlanExercises,
-      });
-
-      setCustomPlans((prev) => [saved, ...prev]);
-      setPlanModalVisible(false);
-      // Reset form
-      setNewPlanName('');
-      setNewPlanDescription('');
-      setNewPlanExercises([]);
-      Alert.alert('Sikeres mentés 🎉', `A(z) "${saved.name}" edzésterv sikeresen elkészült!`);
-    } catch (e: any) {
-      Alert.alert('Hiba', e.message || 'Nem sikerült elmenteni az edzéstervet.');
-    } finally {
-      setIsSavingPlan(false);
-    }
-  };
+  
 
   const handleDeletePlan = (plan: WorkoutPlan) => {
     Alert.alert(
@@ -440,11 +389,7 @@ const ExerciseScreen = ({ navigation }: any) => {
             <TouchableOpacity
               style={styles.createPlanPrimaryBtn}
               activeOpacity={0.85}
-              onPress={() => {
-                setNewPlanName('');
-                setNewPlanExercises([]);
-                setPlanModalVisible(true);
-              }}
+               onPress={() => setPlanModalVisible(true)} 
             >
               <Text style={styles.createPlanPrimaryBtnText}>+ Új Edzésterv Létrehozása</Text>
             </TouchableOpacity>
@@ -749,155 +694,15 @@ const ExerciseScreen = ({ navigation }: any) => {
         </View>
       </Modal>
 
-      {/* ========================================================================= */}
-      {/* MODAL 2: ÚJ EGYÉNI EDZÉSTERV LÉTREHOZÁSA (PLAN CREATOR) */}
-      {/* ========================================================================= */}
-      <Modal
-        visible={planModalVisible}
-        animationType="slide"
-        onRequestClose={() => setPlanModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.creatorModalContainer}
-        >
-          <View style={styles.creatorHeader}>
-            <Text style={styles.creatorHeaderTitle}>Új Edzésterv Tervezése</Text>
-            <TouchableOpacity
-              onPress={() => setPlanModalVisible(false)}
-              style={styles.creatorCloseBtn}
-            >
-              <Text style={styles.creatorCloseBtnText}>✕</Text>
-            </TouchableOpacity>
-          </View>
+      <PlanCreatorModal                                                                                                       
+      visible={planModalVisible}                                                                                            
+      onClose={() => setPlanModalVisible(false)}                                                                            
+      onPlanCreated={(newPlan) => setCustomPlans((prev) => [newPlan, ...prev])}                                             
+      availableExercises={exercisesDb}                                                                                      
+      onOpenCreateCustomExercise={() => setCustomExModalVisible(true)}                                                      
+      onDeleteCustomExercise={handleDeleteCustomExercise}                                                                   
+    />
 
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 18 }}>
-            <Text style={styles.formLabel}>Edzésterv neve *</Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder="pl. PPL - Push Pull Legs, Saját Lábnap"
-              placeholderTextColor="#94A3B8"
-              value={newPlanName}
-              onChangeText={setNewPlanName}
-            />
-
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.formLabel}>Gyakoriság</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="pl. 3 nap / hét"
-                  placeholderTextColor="#94A3B8"
-                  value={newPlanFrequency}
-                  onChangeText={setNewPlanFrequency}
-                />
-              </View>
-
-              <View style={{ flex: 1 }}>
-                <Text style={styles.formLabel}>Becsült idő</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="pl. 60 perc"
-                  placeholderTextColor="#94A3B8"
-                  value={newPlanDuration}
-                  onChangeText={setNewPlanDuration}
-                />
-              </View>
-            </View>
-
-            <Text style={styles.formLabel}>Kategória / Fókusz</Text>
-            <View style={styles.categoryPillsRow}>
-              {['Izomtömeg-növelés', 'Erőnlét', 'Szálkásítás', 'Állóképesség'].map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  style={[
-                    styles.categoryPill,
-                    newPlanCategory === cat && styles.categoryPillActive,
-                  ]}
-                  onPress={() => setNewPlanCategory(cat)}
-                >
-                  <Text
-                    style={[
-                      styles.categoryPillText,
-                      newPlanCategory === cat && styles.categoryPillTextActive,
-                    ]}
-                  >
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.formLabel}>Leírás (opcionális)</Text>
-            <TextInput
-              style={[styles.formInput, { height: 60 }]}
-              placeholder="Rövid leírás a terv céljairól..."
-              placeholderTextColor="#94A3B8"
-              value={newPlanDescription}
-              onChangeText={setNewPlanDescription}
-              multiline
-            />
-
-            {/* Tervben lévő gyakorlatok */}
-            <View style={styles.planExercisesHeaderRow}>
-              <Text style={styles.sectionHeaderTitle}>
-                Gyakorlatok ({newPlanExercises.length})
-              </Text>
-              <TouchableOpacity
-                style={styles.addExToPlanBtn}
-                onPress={() => openExercisePicker('plan_creator')}
-              >
-                <Text style={styles.addExToPlanBtnText}>+ Gyakorlat hozzáadása</Text>
-              </TouchableOpacity>
-            </View>
-
-            {newPlanExercises.length === 0 ? (
-              <View style={styles.emptyExBox}>
-                <Text style={styles.emptyExText}>Még nem adtál hozzá gyakorlatot a tervhez.</Text>
-                <Text style={styles.emptyExSub}>Kattints a fenti "+ Gyakorlat hozzáadása" gombra!</Text>
-              </View>
-            ) : (
-              newPlanExercises.map((ex, idx) => (
-                <View key={idx} style={styles.addedExItemCard}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.addedExName}>{ex.name}</Text>
-                    <Text style={styles.addedExMeta}>
-                      Alapértelmezett: {ex.defaultSets} sorozat{' '}
-                      {ex.trackingType === 'reps_and_weight'
-                        ? `• ${ex.defaultWeight || 60} kg x ${ex.defaultReps || 10} ism`
-                        : ex.trackingType === 'reps_only'
-                        ? `• ${ex.defaultReps || 10} ism`
-                        : `• ${ex.defaultDurationSeconds || 45} mp`}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setNewPlanExercises((prev) => prev.filter((_, i) => i !== idx));
-                    }}
-                    style={styles.removeExBtn}
-                  >
-                    <Text style={styles.removeExBtnText}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-              ))
-            )}
-
-            <TouchableOpacity
-              style={styles.savePlanPrimaryBtn}
-              onPress={handleSaveNewPlan}
-              disabled={isSavingPlan}
-            >
-              {isSavingPlan ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <Text style={styles.savePlanPrimaryBtnText}>Edzésterv Mentése 💾</Text>
-              )}
-            </TouchableOpacity>
-
-            <View style={{ height: 40 }} />
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </Modal>
       <ExercisePickerModal
         visible={pickerModalVisible}
         exercises={exercisesDb}
