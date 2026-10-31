@@ -9,7 +9,6 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -17,26 +16,22 @@ import { colors } from '../../themes/tokens';
 import { auth } from '../../../firebaseConfig';
 import {
   WorkoutPlan,
-  WorkoutPlanExercise,
   WorkoutExercise,
   ExerciseSet,
   getWorkoutPlans,
   getCustomWorkoutPlans,
-  saveCustomWorkoutPlan,
   deleteCustomWorkoutPlan,
   saveWorkoutSession,
 } from '../../services/workoutService';
 import {
   ExerciseDoc,
-  TrackingType,
-  ExerciseCategory,
-  MuscleGroup,
   fetchAvailableExercises,
   deleteCustomExercise,
 } from '../../services/exerciseService';
 import {CustomExerciseModal} from '../../components/exercise/CustomExerciseModal';
 import {ExercisePickerModal} from '../../components/exercise/ExercisePickerModal';
 import {PlanCreatorModal} from '../../components/exercise/PlanCreatorModal';
+import {ActiveWorkoutModal} from '../../components/exercise/ActiveWorkoutModal';
 
 const ExerciseScreen = ({ navigation }: any) => {
   // 1. Fő nézet tab: 'custom' (Saját Terveim) | 'templates' (Sablonok)
@@ -53,10 +48,6 @@ const ExerciseScreen = ({ navigation }: any) => {
   // 4. Aktív edzés folyamat (Workout Session modal)
   const [activeSessionVisible, setActiveSessionVisible] = useState<boolean>(false);
   const [currentPlan, setCurrentPlan] = useState<WorkoutPlan | null>(null);
-  const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
-  const [workoutTimerSeconds, setWorkoutTimerSeconds] = useState<number>(0);
-  const [workoutNotes, setWorkoutNotes] = useState<string>('');
-  const [isSavingSession, setIsSavingSession] = useState<boolean>(false);
 
   // 5. Új Egyéni Edzésterv Létrehozása Modal
   const [planModalVisible, setPlanModalVisible] = useState<boolean>(false);
@@ -99,165 +90,12 @@ const ExerciseScreen = ({ navigation }: any) => {
     }, [])
   );
 
-  // Aktív edzés időzítő
-  useEffect(() => {
-    let interval: any = null;
-    if (activeSessionVisible) {
-      interval = setInterval(() => {
-        setWorkoutTimerSeconds((prev) => prev + 1);
-      }, 1000);
-    } else {
-      clearInterval(interval);
-      setWorkoutTimerSeconds(0);
-    }
-    return () => clearInterval(interval);
-  }, [activeSessionVisible]);
 
-  // Idő formázása mm:ss formátumban
-  const formatTimer = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const remainingSecs = secs % 60;
-    return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
-  };
-
-  // =========================================================================
-  // EDZÉS INDÍTÁSA EGY TERVBŐL (Sablon vagy Saját)
-  // =========================================================================
-  const handleStartWorkout = (plan: WorkoutPlan) => {
-    setCurrentPlan(plan);
-
-    const initialExercises: WorkoutExercise[] = plan.exercises.map((ex) => {
-      const sets: ExerciseSet[] = [];
-      const count = ex.defaultSets || 3;
-      for (let i = 1; i <= count; i++) {
-        sets.push({
-          setNumber: i,
-          weightKg: ex.defaultWeight || (ex.trackingType === 'reps_and_weight' ? 60 : 0),
-          reps: ex.defaultReps || (ex.trackingType !== 'time_hold' ? 10 : undefined),
-          durationSeconds: ex.defaultDurationSeconds || (ex.trackingType === 'time_hold' ? 45 : undefined),
-          completed: false,
-        });
-      }
-
-      return {
-        exerciseId: ex.exerciseId,
-        name: ex.name,
-        trackingType: ex.trackingType,
-        muscleGroup: ex.muscleGroup,
-        sets,
-      };
-    });
-
-    setWorkoutExercises(initialExercises);
-    setWorkoutNotes('');
-    setWorkoutTimerSeconds(0);
-    setActiveSessionVisible(true);
-  };
-
-  // Sorozat állapotának váltása (pipálás)
-  const handleToggleSetComplete = (exIndex: number, setIndex: number) => {
-    setWorkoutExercises((prev) => {
-      const updated = [...prev];
-      const targetSet = updated[exIndex].sets[setIndex];
-      targetSet.completed = !targetSet.completed;
-      return updated;
-    });
-  };
-
-  // Sorozat értékének dinamikus frissítése
-  const handleUpdateSetValue = (
-    exIndex: number,
-    setIndex: number,
-    field: 'weightKg' | 'reps' | 'durationSeconds',
-    val: string
-  ) => {
-    const num = parseFloat(val) || 0;
-    setWorkoutExercises((prev) => {
-      const updated = [...prev];
-      updated[exIndex].sets[setIndex][field] = num;
-      return updated;
-    });
-  };
-
-  // Új sorozat hozzáadása a gyakorlathoz
-  const handleAddSetToExercise = (exIndex: number) => {
-    setWorkoutExercises((prev) => {
-      const updated = [...prev];
-      const ex = updated[exIndex];
-      const lastSet = ex.sets[ex.sets.length - 1];
-
-      ex.sets.push({
-        setNumber: ex.sets.length + 1,
-        weightKg: lastSet?.weightKg ?? (ex.trackingType === 'reps_and_weight' ? 60 : 0),
-        reps: lastSet?.reps ?? (ex.trackingType !== 'time_hold' ? 10 : undefined),
-        durationSeconds: lastSet?.durationSeconds ?? (ex.trackingType === 'time_hold' ? 45 : undefined),
-        completed: false,
-      });
-
-      return updated;
-    });
-  };
-
-  // Sorozat törlése
-  const handleRemoveSet = (exIndex: number, setIndex: number) => {
-    setWorkoutExercises((prev) => {
-      const updated = [...prev];
-      if (updated[exIndex].sets.length > 1) {
-        updated[exIndex].sets.splice(setIndex, 1);
-        // Újraszámozás
-        updated[exIndex].sets.forEach((s, idx) => (s.setNumber = idx + 1));
-      }
-      return updated;
-    });
-  };
-
-  // Edzés befejezése és mentése
-  const handleFinishWorkout = async () => {
-    const completedSetsCount = workoutExercises.reduce(
-      (sum, ex) => sum + ex.sets.filter((s) => s.completed).length,
-      0
-    );
-
-    if (completedSetsCount === 0) {
-      Alert.alert(
-        'Figyelmeztetés',
-        'Még egyetlen sorozatot sem jelöltél be teljesítettként (zöld pipa). Biztosan befejezed és mented?',
-        [
-          { text: 'Még folytatom', style: 'cancel' },
-          { text: 'Befejezés', onPress: () => doSaveSession() },
-        ]
-      );
-      return;
-    }
-
-    doSaveSession();
-  };
-
-  const doSaveSession = async () => {
-    try {
-      setIsSavingSession(true);
-      const durationMin = Math.max(1, Math.round(workoutTimerSeconds / 60));
-
-      const saved = await saveWorkoutSession({
-        title: currentPlan ? currentPlan.name : 'Egyéni Edzés',
-        planId: currentPlan?.id,
-        date: new Date().toISOString().split('T')[0],
-        durationMinutes: durationMin,
-        exercises: workoutExercises,
-        notes: workoutNotes,
-      });
-
-      setActiveSessionVisible(false);
-      Alert.alert(
-        'Edzés sikeresen elmentve! 🏆',
-        `Időtartam: ${durationMin} perc\nÖsszes teljesített sorozat: ${saved.totalSets}\nÖsszvolumen: ${saved.totalVolumeKg} kg\n\nAz új rekordjaid (PR) automatikusan frissültek!`
-      );
-    } catch (err: any) {
-      Alert.alert('Hiba', err.message || 'Nem sikerült elmenteni az edzést.');
-    } finally {
-      setIsSavingSession(false);
-    }
-  };
+ //edzés indítása terv alapján
+ const handleStartWorkout = (plan: WorkoutPlan) => {                                                                     
+      setCurrentPlan(plan);
+      setActiveSessionVisible(true);
+    };                                                                                                                      
 
   // =========================================================================
   // GYAKORLAT VÁLASZTÓ ÉS HOZZÁADÁS (Exercise Picker)
@@ -284,7 +122,6 @@ const ExerciseScreen = ({ navigation }: any) => {
           },
         ],
       };
-      setWorkoutExercises((prev) => [...prev, newWorkoutEx]);
       setPickerModalVisible(false);
     }
 
@@ -339,14 +176,6 @@ const ExerciseScreen = ({ navigation }: any) => {
     );
   };
 
- <ExercisePickerModal                                                                                                    
-      visible={pickerModalVisible}                                                                                          
-      exercises={exercisesDb}                                                                                               
-      onClose={() => setPickerModalVisible(false)}                                                                          
-      onSelectExercise={handleSelectExercise}                                                                               
-      onDeleteExercise={handleDeleteCustomExercise}                                                                         
-      onOpenCreateCustom={() => setCustomExModalVisible(true)}                                                              
-    />
 
   return (
     <View style={styles.container}>
@@ -512,190 +341,18 @@ const ExerciseScreen = ({ navigation }: any) => {
         )}
       </ScrollView>
 
-      {/* ========================================================================= */}
-      {/* MODAL 1: AKTÍV EDZÉS FOLYAMAT (WORKOUT SESSION) DINAMIKUS TRACKINGTÍPUSOKKAL */}
-      {/* ========================================================================= */}
-      <Modal visible={activeSessionVisible} animationType="slide">
-        <View style={styles.activeModalWrapper}>
-          {/* Felső vezérlősáv: Cím, Időzítő, Bezárás */}
-          <View style={styles.activeHeader}>
-            <View>
-              <Text style={styles.activeWorkoutTitle}>{currentPlan?.name || 'Aktív Edzés'}</Text>
-              <Text style={styles.activeWorkoutTimer}>⏱️ {formatTimer(workoutTimerSeconds)}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.closeActiveBtn}
-              onPress={() => {
-                Alert.alert('Edzés megszakítása', 'Biztosan kilépsz? A nem mentett adatok elvesznek.', [
-                  { text: 'Még folytatom', style: 'cancel' },
-                  { text: 'Kilépés', style: 'destructive', onPress: () => setActiveSessionVisible(false) },
-                ]);
-              }}
-            >
-              <Text style={styles.closeActiveBtnText}>✕</Text>
-            </TouchableOpacity>
-          </View>
 
-          <ScrollView style={styles.activeExercisesScroll} contentContainerStyle={{ padding: 16 }}>
-            {workoutExercises.map((ex, exIdx) => (
-              <View key={exIdx} style={styles.activeExCard}>
-                <View style={styles.activeExHeader}>
-                  <Text style={styles.activeExTitle}>{ex.name}</Text>
-                  <View style={styles.trackingTypeBadge}>
-                    <Text style={styles.trackingTypeBadgeText}>
-                      {ex.trackingType === 'reps_and_weight'
-                        ? 'Súly & Ism'
-                        : ex.trackingType === 'reps_only'
-                        ? 'Csak ismétlés'
-                        : 'Időtartam'}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Dinamikus Sorozat Fejléc a trackingType alapján */}
-                <View style={styles.setHeaderRow}>
-                  <Text style={[styles.setHeaderCell, { width: 36 }]}>SZÉR.</Text>
-                  {ex.trackingType === 'reps_and_weight' && (
-                    <>
-                      <Text style={[styles.setHeaderCell, { flex: 1 }]}>SÚLY (KG)</Text>
-                      <Text style={[styles.setHeaderCell, { flex: 1 }]}>ISM (DB)</Text>
-                    </>
-                  )}
-                  {ex.trackingType === 'reps_only' && (
-                    <Text style={[styles.setHeaderCell, { flex: 2 }]}>ISMÉTLÉS (DB)</Text>
-                  )}
-                  {ex.trackingType === 'time_hold' && (
-                    <Text style={[styles.setHeaderCell, { flex: 2 }]}>IDŐTARTAM (MP)</Text>
-                  )}
-                  <Text style={[styles.setHeaderCell, { width: 44, textAlign: 'center' }]}>PIPÁLÁS</Text>
-                </View>
-
-                {/* Dinamikus Sorozatok bevitele */}
-                {ex.sets.map((set, setIdx) => (
-                  <View
-                    key={setIdx}
-                    style={[styles.setRowItem, set.completed && styles.setRowItemCompleted]}
-                  >
-                    <Text style={styles.setIndexText}>{set.setNumber}</Text>
-
-                    {/* Súly & Ismétlés mezők */}
-                    {ex.trackingType === 'reps_and_weight' && (
-                      <>
-                        <TextInput
-                          style={styles.setInputField}
-                          keyboardType="numeric"
-                          value={set.weightKg !== undefined ? String(set.weightKg) : ''}
-                          onChangeText={(val) => handleUpdateSetValue(exIdx, setIdx, 'weightKg', val)}
-                          placeholder="0"
-                        />
-                        <TextInput
-                          style={styles.setInputField}
-                          keyboardType="numeric"
-                          value={set.reps !== undefined ? String(set.reps) : ''}
-                          onChangeText={(val) => handleUpdateSetValue(exIdx, setIdx, 'reps', val)}
-                          placeholder="0"
-                        />
-                      </>
-                    )}
-
-                    {/* Csak ismétlés mező */}
-                    {ex.trackingType === 'reps_only' && (
-                      <TextInput
-                        style={[styles.setInputField, { flex: 2 }]}
-                        keyboardType="numeric"
-                        value={set.reps !== undefined ? String(set.reps) : ''}
-                        onChangeText={(val) => handleUpdateSetValue(exIdx, setIdx, 'reps', val)}
-                        placeholder="10"
-                      />
-                    )}
-
-                    {/* Időtartam mező */}
-                    {ex.trackingType === 'time_hold' && (
-                      <TextInput
-                        style={[styles.setInputField, { flex: 2 }]}
-                        keyboardType="numeric"
-                        value={set.durationSeconds !== undefined ? String(set.durationSeconds) : ''}
-                        onChangeText={(val) => handleUpdateSetValue(exIdx, setIdx, 'durationSeconds', val)}
-                        placeholder="45"
-                      />
-                    )}
-
-                    {/* Pipálás gomb */}
-                    <TouchableOpacity
-                      style={[styles.checkSetBtn, set.completed && styles.checkSetBtnDone]}
-                      onPress={() => handleToggleSetComplete(exIdx, setIdx)}
-                    >
-                      <Text style={[styles.checkSetText, set.completed && styles.checkSetTextDone]}>
-                        {set.completed ? '✓' : '○'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-
-                {/* Műveletek: Sorozat hozzáadása / Sorozat törlése */}
-                <View style={styles.exActionsRow}>
-                  <TouchableOpacity
-                    style={styles.addSetActionBtn}
-                    onPress={() => handleAddSetToExercise(exIdx)}
-                  >
-                    <Text style={styles.addSetActionText}>+ Sorozat hozzáadása</Text>
-                  </TouchableOpacity>
-
-                  {ex.sets.length > 1 && (
-                    <TouchableOpacity
-                      onPress={() => handleRemoveSet(exIdx, ex.sets.length - 1)}
-                      style={{ paddingHorizontal: 10, paddingVertical: 6 }}
-                    >
-                      <Text style={{ fontSize: 11, color: '#EF4444', fontWeight: '600' }}>
-                        - Utolsó törlése
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            ))}
-
-            {/* További gyakorlat felvétele élő edzés közben */}
-            <TouchableOpacity
-              style={styles.addMoreExLiveBtn}
-              onPress={() => openExercisePicker('active_workout')}
-            >
-              <Text style={styles.addMoreExLiveBtnText}>+ Gyakorlat hozzáadása az edzéshez</Text>
-            </TouchableOpacity>
-
-            {/* Edzésjegyzetek */}
-            <View style={styles.notesContainer}>
-              <Text style={styles.notesLabel}>Edzés jegyzetek (opcionális):</Text>
-              <TextInput
-                style={styles.notesInput}
-                placeholder="Hogy érezted magad? Sikerült új súlyt kipróbálni?"
-                placeholderTextColor="#94A3B8"
-                value={workoutNotes}
-                onChangeText={setWorkoutNotes}
-                multiline
-              />
-            </View>
-
-            {/* Edzés befejezése gomb */}
-            <TouchableOpacity
-              style={styles.finishWorkoutPrimaryBtn}
-              onPress={handleFinishWorkout}
-              disabled={isSavingSession}
-            >
-              {isSavingSession ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <Text style={styles.finishWorkoutBtnText}>Edzés Befejezése & Mentés ✓</Text>
-              )}
-            </TouchableOpacity>
-
-            <View style={{ height: 40 }} />
-          </ScrollView>
-        </View>
-      </Modal>
-
-      <PlanCreatorModal                                                                                                       
-      visible={planModalVisible}                                                                                            
+      <ActiveWorkoutModal
+        visible={activeSessionVisible}
+        plan={currentPlan}
+        availableExercises={exercisesDb}
+        onClose={() => setActiveSessionVisible(false)}
+        onWorkoutFinished={() => setActiveSessionVisible(false)}
+        onOpenCreateCustomExercise={() => setCustomExModalVisible(true)}
+        onDeleteCustomExercise={handleDeleteCustomExercise}
+      />
+      <PlanCreatorModal
+        visible={planModalVisible}                                                                                            
       onClose={() => setPlanModalVisible(false)}                                                                            
       onPlanCreated={(newPlan) => setCustomPlans((prev) => [newPlan, ...prev])}                                             
       availableExercises={exercisesDb}                                                                                      
