@@ -34,7 +34,6 @@ import {
   fetchAvailableExercises,
   createCustomExercise,
   deleteCustomExercise,
-  seedPredefinedExercises,
 } from '../../services/exerciseService';
 
 const ExerciseScreen = ({ navigation }: any) => {
@@ -86,8 +85,6 @@ const ExerciseScreen = ({ navigation }: any) => {
   const loadAllData = async () => {
     try {
       setLoadingPlans(true);
-      // Auto-seed predefiniált gyakorlatok
-      seedPredefinedExercises().catch(() => {});
 
       // Sablonok betöltése
       setTemplatePlans(getWorkoutPlans());
