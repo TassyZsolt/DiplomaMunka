@@ -67,7 +67,7 @@ export interface WorkoutPlan {
   createdAt?: string;
 }
 
-// 5 Predefiniált Edzésterv Sablon (új Exercise ID referenciákkal)
+// Predefiniált edzéstervek
 export const WORKOUT_PLANS: WorkoutPlan[] = [
   {
     id: 'ppl',
@@ -148,7 +148,7 @@ export const WORKOUT_PLANS: WorkoutPlan[] = [
   },
 ];
 
-// Kezdeti minta előzmény edzések a héten (lokális cache és fallback)
+// Minta előzmények fallbackhez
 const INITIAL_DEMO_SESSIONS: WorkoutSession[] = [
   {
     id: 'demo-1',
@@ -336,8 +336,7 @@ export const getWorkoutSessions = async (): Promise<WorkoutSession[]> => {
 };
 
 /**
- * Elmenti a befejezett edzést a Firestore workoutSessions kollekcióba,
- * és ellenőrzi / frissíti a /personalRecords/{userId}_{exerciseId} rekordokat.
+ * Elmenti a befejezett edzést és frissíti a rekordokat.
  */
 export const saveWorkoutSession = async (
   sessionData: Omit<WorkoutSession, 'id' | 'userId' | 'createdAt' | 'totalVolumeKg' | 'totalSets'>
@@ -377,7 +376,7 @@ export const saveWorkoutSession = async (
 
   sessionCache = [newSession, ...sessionCache];
 
-  // 1. Mentés a Firestore workoutSessions kollekcióba
+  // Mentés a workoutSessions kollekcióba
   if (user) {
     try {
       const { id, ...sessionToSave } = newSession;
@@ -395,7 +394,7 @@ export const saveWorkoutSession = async (
     }
   }
 
-  // 2. Personal Records automatikus ellenőrzése és frissítése (/personalRecords/{userId}_{exerciseId})
+  // PR rekordok frissítése szükség esetén
   if (user) {
     try {
       for (const ex of sessionData.exercises) {

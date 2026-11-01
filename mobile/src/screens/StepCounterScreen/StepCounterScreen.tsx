@@ -125,7 +125,7 @@ const StepCounterScreen = ({ navigation }: any) => {
       <Text style={styles.title}>Lépésszámláló</Text>
       <Text style={styles.subtitle}>Napi aktivitás, óránkénti bontás és 7 napos előzmény</Text>
 
-      {/* Állapot jelvény */}
+      
       <View
         style={[
           styles.statusBadge,
@@ -142,7 +142,7 @@ const StepCounterScreen = ({ navigation }: any) => {
         </Text>
       </View>
 
-      {/* Szegmensválasztó (Daily vs Historical View in Drill-down) */}
+      
       <View style={styles.segmentContainer}>
         <TouchableOpacity
           style={[styles.segmentBtn, activeTab === 'today' && styles.segmentBtnActive]}
@@ -172,10 +172,10 @@ const StepCounterScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      {/* 1. Mai Nap fül */}
+      
       {activeTab === 'today' && (
         <View style={styles.tabContent}>
-          {/* Fő Kördiagram kártya */}
+          
           <View style={styles.mainCard}>
             <View style={styles.ringContainer}>
               <Svg width={size} height={size}>
@@ -222,7 +222,7 @@ const StepCounterScreen = ({ navigation }: any) => {
             )}
           </View>
 
-          {/* Óránkénti aktivitás diagram kártya */}
+          
           <View style={styles.hourlyCard}>
             <Text style={styles.hourlyCardTitle}>Óránkénti lépéseloszlás ma</Text>
             <View style={styles.hourlyChartRow}>
@@ -244,7 +244,7 @@ const StepCounterScreen = ({ navigation }: any) => {
         </View>
       )}
 
-      {/* 2. 7 Napos Előzmény fül */}
+      
       {activeTab === 'weekly' && (
         <View style={styles.tabContent}>
           <View style={styles.weeklyCard}>
@@ -265,7 +265,7 @@ const StepCounterScreen = ({ navigation }: any) => {
               <Text style={styles.goalLineText}>10k Napi cél</Text>
             </View>
 
-            {/* 7 napos oszlopdiagram */}
+            
             <View style={styles.barsContainer}>
               {WEEKLY_STEP_DATA.map((item, idx) => {
                 const heightPercent = Math.min(100, Math.max(10, (item.steps / 13000) * 100));
@@ -309,7 +309,7 @@ const StepCounterScreen = ({ navigation }: any) => {
         </View>
       )}
 
-      {/* 3. Részletes Metrikák fül (Kadencia, távolság, kalória) */}
+      
       {activeTab === 'cadence' && (
         <View style={styles.tabContent}>
           <View style={styles.cadenceGrid}>
@@ -344,7 +344,7 @@ const StepCounterScreen = ({ navigation }: any) => {
         </View>
       )}
 
-      {/* Általános metrikák rács */}
+      
       <View style={styles.metricsRow}>
         <View style={styles.metricCard}>
           <Text style={styles.metricIcon}>📍</Text>
@@ -367,7 +367,7 @@ const StepCounterScreen = ({ navigation }: any) => {
 
     
 
-      {/* Tesztvezérlő */}
+      
       <View style={styles.testSection}>
         <Text style={styles.testTitle}>Tesztvezérlő (Szimulátor / Asztali teszt)</Text>
         <View style={styles.testButtonsRow}>
@@ -383,7 +383,7 @@ const StepCounterScreen = ({ navigation }: any) => {
         </View>
       </View>
 
-      {/* Vissza gomb */}
+      
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>← Vissza az áttekintéshez</Text>
       </TouchableOpacity>

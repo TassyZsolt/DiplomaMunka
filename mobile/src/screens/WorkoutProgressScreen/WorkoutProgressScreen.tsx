@@ -65,7 +65,7 @@ const WorkoutProgressScreen = ({ navigation }: any) => {
       <Text style={styles.title}>Edzések & Terhelés</Text>
       <Text style={styles.subtitle}>Valós heti konzisztencia, izomcsoport-megoszlás és napló</Text>
 
-      {/* Gyors Edzés Indítás gomb */}
+      
       <TouchableOpacity
         style={styles.startWorkoutBanner}
         onPress={() => navigation.navigate('Exercise')}
@@ -80,7 +80,7 @@ const WorkoutProgressScreen = ({ navigation }: any) => {
         <Text style={styles.startBannerBtnText}>Indítás →</Text>
       </TouchableOpacity>
 
-      {/* Részletes szegmensválasztó */}
+      
       <View style={styles.segmentContainer}>
         <TouchableOpacity
           style={[styles.segmentBtn, activeTab === 'calendar' && styles.segmentBtnActive]}
@@ -110,10 +110,10 @@ const WorkoutProgressScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      {/* 1. Heti Naptár fül */}
+      
       {activeTab === 'calendar' && (
         <View style={styles.tabContent}>
-          {/* Heti teljesítmény kártya */}
+          
           <View style={styles.summaryCard}>
             <View style={styles.summaryTopRow}>
               <View>
@@ -131,7 +131,7 @@ const WorkoutProgressScreen = ({ navigation }: any) => {
               <View style={[styles.progressBarFill, { width: `${completedGoalPercent}%` }]} />
             </View>
 
-            {/* Heti napok rácsa */}
+            
             <View style={styles.daysRow}>
               {weekDays.map((day, idx) => (
                 <View
@@ -156,7 +156,7 @@ const WorkoutProgressScreen = ({ navigation }: any) => {
             </View>
           </View>
 
-          {/* Heti statisztikai összegző */}
+          
           <View style={styles.statsRow}>
             <View style={styles.statCol}>
               <Text style={styles.statColValue}>{formatHoursMinutes(stats.totalTimeMinutes)}</Text>
@@ -176,7 +176,7 @@ const WorkoutProgressScreen = ({ navigation }: any) => {
             </View>
           </View>
 
-          {/* A hét edzései időrendben */}
+          
           <Text style={styles.sectionHeader}>A hét részletes beosztása</Text>
           {weekDays.map((day, idx) => (
             <View key={idx} style={styles.scheduleItem}>
@@ -209,7 +209,7 @@ const WorkoutProgressScreen = ({ navigation }: any) => {
         </View>
       )}
 
-      {/* 2. Izomterhelés fül */}
+      
       {activeTab === 'volume' && (
         <View style={styles.tabContent}>
           <View style={styles.volumeCard}>
@@ -248,7 +248,7 @@ const WorkoutProgressScreen = ({ navigation }: any) => {
         </View>
       )}
 
-      {/* 3. Edzésnapló fül */}
+      
       {activeTab === 'history' && (
         <View style={styles.tabContent}>
           {sessions.map((log) => (
@@ -290,7 +290,7 @@ const WorkoutProgressScreen = ({ navigation }: any) => {
         </View>
       )}
 
-      {/* Vissza gomb */}
+      
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}

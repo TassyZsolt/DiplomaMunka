@@ -179,7 +179,7 @@ import React, { useState } from 'react';
                 multiline                                                                                                   
               />                                                                                                            
                                                                                                                             
-              {/* Tervben lévő gyakorlatok */}                                                                              
+                                                                                            
               <View style={styles.planExercisesHeaderRow}>                                                                  
                 <Text style={styles.sectionHeaderTitle}>Gyakorlatok ({exercises.length})</Text>                             
                 <TouchableOpacity                                                                                           
@@ -235,7 +235,7 @@ import React, { useState } from 'react';
             </ScrollView>                                                                                                   
           </KeyboardAvoidingView>                                                                                           
                                                                                                                             
-          {/* Gyakorlat Választó Modális a tervhez */}                                                                      
+                                                                                
           <ExercisePickerModal                                                                                              
             visible={isPickerVisible}                                                                                       
             exercises={availableExercises}                                                                                  

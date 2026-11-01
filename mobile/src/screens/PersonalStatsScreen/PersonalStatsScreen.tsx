@@ -81,7 +81,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
           const total = waterLogs.reduce((sum: number, log: any) => sum + (log.amountMl || 0), 0);
           setTodayWater(total);
         } catch (e) {
-          // ignore
+          
         }
       } else {
         setUserName('Sportoló');
@@ -167,7 +167,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Fejléc és köszöntő */}
+      
       <View style={styles.headerCard}>
         <View style={styles.avatarCircle}>
           <Text style={styles.avatarText}>{userName.charAt(0).toUpperCase() || 'S'}</Text>
@@ -178,7 +178,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
         </View>
       </View>
 
-      {/* Szegmensválasztó (Drill-Down belső navigáció) */}
+      
       <View style={styles.segmentContainer}>
         <TouchableOpacity
           style={[styles.segmentBtn, activeTab === 'records' && styles.segmentBtnActive]}
@@ -208,10 +208,10 @@ const PersonalStatsScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      {/* 1. Rekordok (PRs) fül */}
+      
       {activeTab === 'records' && (
         <View style={styles.tabContent}>
-          {/* Összesített Rekord (Powerlifting Total) kiemelt kártya */}
+          
           <View style={styles.totalCard}>
             <View style={styles.totalCardHeader}>
               <Text style={styles.totalCardTitle}>ÖSSZESÍTETT REKORD (TOTAL)</Text>
@@ -253,7 +253,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
             </View>
           </View>
 
-          {/* Personal Records Szekció fejléc */}
+          
           <View style={styles.sectionHeaderRow}>
             <View>
               <Text style={styles.sectionTitle}>Egyéni rekordok listája</Text>
@@ -269,7 +269,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          {/* Gyakorlat kártyák listája */}
+          
           <View style={styles.prList}>
             {filteredExercises.map((exercise) => {
               const pr = records[exercise.id];
@@ -318,7 +318,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
         </View>
       )}
 
-      {/* 2. 1RM Kalkulátor fül */}
+      
       {activeTab === 'calculator' && (
         <View style={styles.tabContent}>
           <View style={styles.calcCard}>
@@ -359,7 +359,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
               </Text>
             </View>
 
-            {/* Százalékos táblázat */}
+            
             <Text style={styles.tableHeader}>Edzési intenzitási zónák (1RM arányában):</Text>
             <View style={styles.tableGrid}>
               <View style={styles.tableRow}>
@@ -387,7 +387,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
         </View>
       )}
 
-      {/* 3. Izomcsoportok szűrő fül */}
+      
       {activeTab === 'categories' && (
         <View style={styles.tabContent}>
           <Text style={styles.filterTitle}>Szűrés célzott izomcsoport szerint:</Text>
@@ -436,7 +436,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
         </View>
       )}
 
-      {/* Vissza gomb */}
+      
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -444,7 +444,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
         <Text style={styles.backButtonText}>← Vissza az áttekintéshez</Text>
       </TouchableOpacity>
 
-      {/* PR Szerkesztő / Rögzítő Modal */}
+      
       <Modal
         visible={modalVisible}
         transparent={true}

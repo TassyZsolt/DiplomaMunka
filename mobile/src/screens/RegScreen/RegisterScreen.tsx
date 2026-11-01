@@ -48,7 +48,7 @@ const RegisterScreen = ({ navigation }: any) => {
     };
   }, []);
 
-  // Fókuszált beviteli mező képernyőre görgetése
+  // beviteli mező képernyőre görgetése
   const scrollToInput = (yOffset: number) => {
     setTimeout(() => {
       scrollViewRef.current?.scrollTo({ y: yOffset, animated: true });
@@ -113,7 +113,7 @@ const RegisterScreen = ({ navigation }: any) => {
     }
   };
 
-  // Közösségi fiókok
+  // közösségi fiókok
   const handleSocialRegister = (provider: 'Google' | 'Apple') => {
     Alert.alert(
       `${provider} regisztráció`,
@@ -139,9 +139,8 @@ const RegisterScreen = ({ navigation }: any) => {
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets={true}
         >
-          {/* ========================================================================= */}
-          {/* 1. VISSZA GOMB */}
-          {/* ========================================================================= */}
+
+          
           <View style={styles.topBar}>
             <TouchableOpacity
               style={styles.backButton}
@@ -161,9 +160,7 @@ const RegisterScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          {/* ========================================================================= */}
-          {/* 2. LOGÓ, APP NÉV ÉS ÜDVÖZLŐ FEJLÉC */}
-          {/* ========================================================================= */}
+          
           <View style={styles.headerContainer}>
             <View style={styles.logoBadge}>
               <Text style={styles.logoEmoji}>🏃</Text>
@@ -175,11 +172,10 @@ const RegisterScreen = ({ navigation }: any) => {
             </Text>
           </View>
 
-          {/* ========================================================================= */}
-          {/* 3. REGISZTRÁCIÓS ŰRLAP */}
-          {/* ========================================================================= */}
+
+          
           <View style={styles.formContainer}>
-            {/* Név mezők (Vezetéknév & Keresztnév egymás mellett) */}
+            
             <View style={styles.namesRow}>
               <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                 <Text style={styles.inputLabel}>Vezetéknév</Text>
@@ -212,7 +208,7 @@ const RegisterScreen = ({ navigation }: any) => {
               </View>
             </View>
 
-            {/* E-mail cím mező */}
+            
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>E-mail cím</Text>
               <View style={styles.inputWrapper}>
@@ -248,7 +244,7 @@ const RegisterScreen = ({ navigation }: any) => {
               </View>
             </View>
 
-            {/* Jelszó mező szem kapcsolóval */}
+            
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Jelszó</Text>
               <View style={styles.inputWrapper}>
@@ -331,7 +327,7 @@ const RegisterScreen = ({ navigation }: any) => {
               </View>
             </View>
 
-            {/* Jelszó megerősítése mező */}
+            
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Jelszó megerősítése</Text>
               <View style={styles.inputWrapper}>
@@ -414,7 +410,7 @@ const RegisterScreen = ({ navigation }: any) => {
               </View>
             </View>
 
-            {/* Fő Regisztráció gomb */}
+            
             <TouchableOpacity
               style={[styles.registerButton, loading && styles.registerButtonDisabled]}
               onPress={handleRegister}
@@ -429,20 +425,16 @@ const RegisterScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          {/* ========================================================================= */}
-          {/* 4. ELVÁLASZTÓ */}
-          {/* ========================================================================= */}
+
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>vagy regisztráció ezzel</Text>
             <View style={styles.dividerLine} />
           </View>
 
-          {/* ========================================================================= */}
-          {/* 5. KÖZÖSSÉGI REGISZTRÁCIÓS GOMBOK (GOOGLE & APPLE) */}
-          {/* ========================================================================= */}
+          
           <View style={styles.socialButtonsContainer}>
-            {/* Google gomb */}
+            
             <TouchableOpacity
               style={styles.googleButton}
               onPress={() => handleSocialRegister('Google')}
@@ -469,7 +461,7 @@ const RegisterScreen = ({ navigation }: any) => {
               <Text style={styles.googleButtonText}>Folytatás Google-fiókkal</Text>
             </TouchableOpacity>
 
-            {/* Apple gomb */}
+            
             <TouchableOpacity
               style={styles.appleButton}
               onPress={() => handleSocialRegister('Apple')}
@@ -482,9 +474,7 @@ const RegisterScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          {/* ========================================================================= */}
-          {/* 6. LÁBLÉC (BEJELENTKEZÉS LINK) */}
-          {/* ========================================================================= */}
+          
           <View style={styles.footerRow}>
             <Text style={styles.footerPromptText}>Már van fiókod?</Text>
             <TouchableOpacity
@@ -518,8 +508,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
 
-  // 1. VISSZA GOMB
-  topBar: {
+    topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
@@ -540,7 +529,6 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
 
-  // 2. LOGÓ & FEJLÉC
   headerContainer: {
     alignItems: 'center',
     marginBottom: 24,
@@ -587,8 +575,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
 
-  // 3. ŰRLAP
-  formContainer: {
+    formContainer: {
     marginBottom: 20,
   },
   namesRow: {
@@ -650,7 +637,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // 4. ELVÁLASZTÓ
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -668,7 +654,6 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
 
-  // 5. KÖZÖSSÉGI GOMBOK
   socialButtonsContainer: {
     gap: 12,
     marginBottom: 24,
@@ -714,7 +699,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 
-  // 6. LÁBLÉC
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',

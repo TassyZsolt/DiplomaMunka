@@ -82,7 +82,7 @@ export const CustomExerciseModal: React.FC<CustomExerciseModalProps> = ({
             onRequestClose={handleClose}>
             <View style={styles.overlay}>
                 <View style={styles.card}>
-                    {/* Header */}
+                    
                     <View style={styles.headerRow}>
                         <Text style={styles.title}>Új Gyakorlat Hozzáadása</Text>
                         <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
@@ -90,7 +90,7 @@ export const CustomExerciseModal: React.FC<CustomExerciseModalProps> = ({
                         </TouchableOpacity>
                     </View>
 
-                    {/* Form Fields */}
+                    
                     <Text style={styles.formLabel}>Gyakorlat magyar neve *</Text>
                     <TextInput
                         style={styles.formInput}
@@ -109,7 +109,7 @@ export const CustomExerciseModal: React.FC<CustomExerciseModalProps> = ({
                         onChangeText={setEnglishName}
                     />
 
-                    {/* Kategória */}
+                    
                     <Text style={styles.formLabel}>Kategória</Text>
                     <View style={styles.pillsRow}>
                         {(['gym', 'calisthenics', 'mobility'] as ExerciseCategory[]).map((c) => (
@@ -126,7 +126,7 @@ export const CustomExerciseModal: React.FC<CustomExerciseModalProps> = ({
                         ))}
                     </View>
 
-                    {/* Izomcsoport */}
+                    
                     <Text style={styles.formLabel}>Cél izomcsoport</Text>
                     <View style={styles.pillsRow}>
                         {(['mellkas', 'hat', 'vall', 'lab', 'kar', 'torzs'] as
@@ -144,7 +144,7 @@ export const CustomExerciseModal: React.FC<CustomExerciseModalProps> = ({
                             ))}
                     </View>
 
-                    {/* Mérés módja */}
+                    
                     <Text style={styles.formLabel}>Mérés módja (Tracking Type)</Text>
                     <View style={styles.pillsRow}>
                         {(['reps_and_weight', 'reps_only', 'time_hold'] as
@@ -166,7 +166,7 @@ export const CustomExerciseModal: React.FC<CustomExerciseModalProps> = ({
                             ))}
                     </View>
 
-                    {/* Mentés Gomb */}
+                    
                     <TouchableOpacity style={styles.saveBtn} onPress={handleSave}
                         disabled={isSaving}>
                         {isSaving ? (

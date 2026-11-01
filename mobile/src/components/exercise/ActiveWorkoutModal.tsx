@@ -209,7 +209,7 @@ import React, { useState, useEffect } from 'react';
       return (                                                                                                              
         <Modal visible={visible} animationType="slide" onRequestClose={handleConfirmClose}>                                 
           <View style={styles.container}>                                                                                   
-            {/* Header */}                                                                                                  
+                                                                                                              
             <View style={styles.header}>                                                                                    
               <View>                                                                                                        
                 <Text style={styles.title}>{plan?.name || 'Aktív Edzés'}</Text>                                             
@@ -220,7 +220,7 @@ import React, { useState, useEffect } from 'react';
               </TouchableOpacity>                                                                                           
             </View>                                                                                                         
                                                                                                                             
-            {/* Exercises list */}                                                                                          
+                                                                                                      
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>                                        
               {exercises.map((ex, exIdx) => (                                                                               
                 <View key={exIdx} style={styles.exerciseCard}>                                                              
@@ -229,7 +229,7 @@ import React, { useState, useEffect } from 'react';
                     <Text style={styles.exMuscleBadge}>{ex.muscleGroup.toUpperCase()}</Text>                                
                   </View>                                                                                                   
                                                                                                                             
-                  {/* Set headers */}                                                                                       
+                                                                                                         
                   <View style={styles.setRowHeader}>                                                                        
                     <Text style={[styles.setColHeader, { width: 36 }]}>#</Text>                                             
                     {ex.trackingType !== 'time_hold' && (                                                                   
@@ -246,7 +246,7 @@ import React, { useState, useEffect } from 'react';
                     <Text style={{ width: 24 }} />                                                                          
                   </View>                                                                                                   
                                                                                                                             
-                  {/* Sets */}                                                                                              
+                                                                                                                
                   {ex.sets.map((set, setIdx) => (                                                                           
                     <View                                                                                                   
                       key={setIdx}                                                                                          
@@ -317,7 +317,7 @@ import React, { useState, useEffect } from 'react';
                 </View>                                                                                                     
               ))}                                                                                                           
                                                                                                                             
-              {/* Add extra exercise to active workout */}                                                                  
+                                                                                
               <TouchableOpacity                                                                                             
                 style={styles.addMoreExBtn}                                                                                 
                 onPress={() => setIsPickerVisible(true)}                                                                    
@@ -325,7 +325,7 @@ import React, { useState, useEffect } from 'react';
                 <Text style={styles.addMoreExBtnText}>+ További Gyakorlat Hozzáadása</Text>                                 
               </TouchableOpacity>                                                                                           
                                                                                                                             
-              {/* Notes */}                                                                                                 
+                                                                                                               
               <Text style={styles.notesLabel}>Edzés jegyzetek (opcionális)</Text>                                           
               <TextInput                                                                                                    
                 style={styles.notesInput}                                                                                   
@@ -336,7 +336,7 @@ import React, { useState, useEffect } from 'react';
                 multiline                                                                                                   
               />                                                                                                            
                                                                                                                             
-              {/* Finish button */}                                                                                         
+                                                                                                       
               <TouchableOpacity                                                                                             
                 style={styles.finishBtn}                                                                                    
                 onPress={handleFinish}                                                                                      
@@ -353,7 +353,7 @@ import React, { useState, useEffect } from 'react';
             </ScrollView>                                                                                                   
           </View>                                                                                                           
                                                                                                                             
-          {/* Exercise Picker Modal */}                                                                                     
+                                                                                               
           <ExercisePickerModal                                                                                              
             visible={isPickerVisible}                                                                                       
             exercises={availableExercises}                                                                                  
