@@ -6,13 +6,9 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  Modal,
-  TextInput,
   ActivityIndicator,
   RefreshControl,
   Alert,
-  Platform,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Circle, Path, Rect, G } from 'react-native-svg';
@@ -39,6 +35,7 @@ import {
 import { getWorkoutPlans, WorkoutPlan } from '../../services/workoutService';
 import { QuickMealModal } from '../../components/menu/QuickMealModal';
 import { QuickWaterModal } from '../../components/menu/QuickWaterModal';
+import { QuickWorkoutModal } from '../../components/menu/QuickWorkoutModal';
 
 // Napi folyadék célkitűzés
 const DAILY_WATER_GOAL = 2000; // ml
@@ -704,88 +701,11 @@ const MenuScreen = ({ navigation }: any) => {
       {/* ========================================================================= */}
       {/* MODAL 3: EDZÉS NAPLÓZÁS (QUICK LOG WORKOUT) */}
       {/* ========================================================================= */}
-      <Modal
+      <QuickWorkoutModal
         visible={workoutModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setWorkoutModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeaderRow}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ fontSize: 24, marginRight: 8 }}>🏋️</Text>
-                <Text style={styles.modalTitle}>Edzés gyorsindítás</Text>
-              </View>
-              <TouchableOpacity onPress={() => setWorkoutModalVisible(false)} style={styles.closeBtn}>
-                <Text style={styles.closeBtnText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.modalDescription}>
-              Válassz az alábbi lehetőségek közül az edzés és rekordok naplózásához:
-            </Text>
-
-            <TouchableOpacity
-              style={styles.workoutOptionTile}
-              onPress={() => {
-                setWorkoutModalVisible(false);
-                navigation.navigate('Exercise');
-              }}
-            >
-              <Text style={styles.workoutOptionEmoji}>⚡</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.workoutOptionTitle}>Predefiniált Edzés Indítása</Text>
-                <Text style={styles.workoutOptionSub}>
-                  Interaktív sorozatkövető, időzítő és pipálható ismétlések
-                </Text>
-              </View>
-              <Text style={styles.hubArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.workoutOptionTile}
-              onPress={() => {
-                setWorkoutModalVisible(false);
-                navigation.navigate('WorkoutProgress');
-              }}
-            >
-              <Text style={styles.workoutOptionEmoji}>📈</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.workoutOptionTitle}>Edzéselőzmények & Elemzés</Text>
-                <Text style={styles.workoutOptionSub}>
-                  Korábbi edzések megtekintése, heti volumenek
-                </Text>
-              </View>
-              <Text style={styles.hubArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.workoutOptionTile}
-              onPress={() => {
-                setWorkoutModalVisible(false);
-                navigation.navigate('PersonalStats');
-              }}
-            >
-              <Text style={styles.workoutOptionEmoji}>🏆</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.workoutOptionTitle}>Egyéni Csúcs (PR) Rögzítése</Text>
-                <Text style={styles.workoutOptionSub}>
-                  Guggolás, fekvenyomás, felhúzás 1RM és új rekordok
-                </Text>
-              </View>
-              <Text style={styles.hubArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.cancelModalBtn, { marginTop: 12, width: '100%' }]}
-              onPress={() => setWorkoutModalVisible(false)}
-            >
-              <Text style={styles.cancelModalBtnText}>Mégse</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setWorkoutModalVisible(false)}
+        navigation={navigation}
+      />
     </View>
   );
 };
@@ -1340,112 +1260,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#DC2626',
-  },
-
-  // MODALOK
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    justifyContent: 'flex-end',
-  },
-  modalCard: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  modalHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.neutral[900],
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.neutral[600],
-  },
-  modalDescription: {
-    fontSize: 13,
-    color: colors.neutral[600],
-    marginBottom: 16,
-    lineHeight: 18,
-  },
-
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.neutral[700],
-    marginBottom: 6,
-  },
-  textInput: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: colors.neutral[900],
-    marginBottom: 14,
-  },
-
-  cancelModalBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelModalBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.neutral[700],
-  },
-
-  // Edzés opció csempék modalban
-  workoutOptionTile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  workoutOptionEmoji: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  workoutOptionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.neutral[900],
-    marginBottom: 2,
-  },
-  workoutOptionSub: {
-    fontSize: 11,
-    color: colors.neutral[500],
-    lineHeight: 15,
   },
 });
