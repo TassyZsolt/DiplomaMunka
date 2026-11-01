@@ -103,7 +103,7 @@ export const MenuHeader: React.FC<MenuHeaderProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* Köszöntő mottó szalag */}
+      
       <View style={styles.motivationBanner}>
         <Text style={styles.motivationText}>✨ {subtext}</Text>
       </View>

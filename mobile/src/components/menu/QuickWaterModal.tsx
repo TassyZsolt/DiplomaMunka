@@ -76,7 +76,7 @@ export const QuickWaterModal: React.FC<QuickWaterModalProps> = ({
         style={styles.modalOverlay}
       >
         <View style={styles.modalCard}>
-          {/* Header */}
+          
           <View style={styles.modalHeaderRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={{ fontSize: 24, marginRight: 8 }}>💧</Text>
@@ -87,14 +87,14 @@ export const QuickWaterModal: React.FC<QuickWaterModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Description */}
+          
           <Text style={styles.modalDescription}>
             Mai eddigi fogyasztásod:{' '}
             <Text style={{ fontWeight: 'bold', color: '#0284C7' }}>{todayWater} ml</Text> a célként kitűzött{' '}
             {dailyGoal} ml-ből.
           </Text>
 
-          {/* Quick Presets */}
+          
           <Text style={styles.inputLabel}>Válassz gyors adagot vagy adj meg egyedit:</Text>
           <View style={styles.waterQuickPresetsGrid}>
             {WATER_PRESETS.map((preset) => (
@@ -111,7 +111,7 @@ export const QuickWaterModal: React.FC<QuickWaterModalProps> = ({
             ))}
           </View>
 
-          {/* Custom Amount */}
+          
           <Text style={[styles.inputLabel, { marginTop: 16 }]}>Egyedi mennyiség (ml):</Text>
           <View style={styles.customWaterRow}>
             <TextInput
@@ -134,7 +134,7 @@ export const QuickWaterModal: React.FC<QuickWaterModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Close button */}
+          
           <TouchableOpacity
             style={[styles.cancelModalBtn, { marginTop: 16, width: '100%' }]}
             onPress={onClose}

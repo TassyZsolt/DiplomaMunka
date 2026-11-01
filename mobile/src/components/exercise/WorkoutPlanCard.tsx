@@ -25,7 +25,7 @@ import React from 'react';
                                                                                                                             
       return (                                                                                                              
         <View style={styles.planCard}>                                                                                      
-          {/* Header */}                                                                                                    
+                                                                                                              
           <View style={styles.planCardHeader}>                                                                              
             <View style={{ flex: 1 }}>                                                                                      
               <View style={styles.titleRow}>                                                                                
@@ -48,12 +48,12 @@ import React from 'react';
             ) : null}                                                                                                       
           </View>                                                                                                           
                                                                                                                             
-          {/* Description */}                                                                                               
+                                                                                                         
           <Text style={styles.planCardDesc} numberOfLines={2}>                                                              
             {plan.description}                                                                                              
           </Text>                                                                                                           
                                                                                                                             
-          {/* Exercise Chips */}                                                                                            
+                                                                                                      
           <View style={styles.planChipsRow}>                                                                                
             {plan.exercises.slice(0, 4).map((ex, idx) => (                                                                  
               <View key={idx} style={styles.miniExChip}>                                                                    
@@ -69,7 +69,7 @@ import React from 'react';
             )}                                                                                                              
           </View>                                                                                                           
                                                                                                                             
-          {/* Start Button */}                                                                                              
+                                                                                                        
           <TouchableOpacity                                                                                                 
             style={styles.openPlanBtn}                                                                                      
             activeOpacity={0.85}                                                                                            

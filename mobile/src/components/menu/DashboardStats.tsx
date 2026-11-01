@@ -52,7 +52,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Szekció fejléc */}
+      
       <View style={styles.sectionHeaderRow}>
         <View>
           <Text style={styles.sectionTitle}>Napi haladás</Text>
@@ -63,7 +63,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* Kiemelt Lépésszámláló Kártya */}
+      
       <TouchableOpacity
         style={styles.stepProgressCard}
         activeOpacity={0.85}
@@ -91,7 +91,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
           </View>
         </View>
 
-        {/* Kör alakú SVG haladásjelző */}
+        
         <View style={styles.stepRingWrapper}>
           <Svg width={ringSize} height={ringSize}>
             <Circle
@@ -122,9 +122,9 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
         </View>
       </TouchableOpacity>
 
-      {/* Két oszlopos kártyák: Kalória és Vízbevitel */}
+      
       <View style={styles.dualStatsRow}>
-        {/* Elfogasztott Kalória Kártya */}
+        
         <TouchableOpacity
           style={[styles.smallStatCard, { borderLeftColor: '#10B981', borderLeftWidth: 4 }]}
           activeOpacity={0.85}
@@ -153,7 +153,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
           </Text>
         </TouchableOpacity>
 
-        {/* Vízfogyasztás Kártya */}
+        
         <TouchableOpacity
           style={[styles.smallStatCard, { borderLeftColor: '#0284C7', borderLeftWidth: 4 }]}
           activeOpacity={0.85}

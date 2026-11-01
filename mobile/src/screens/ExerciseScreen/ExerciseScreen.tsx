@@ -40,7 +40,7 @@ const ExerciseScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* 1. SEGMENTED CONTROL (Saját Terveim vs Sablonok) */}
+      
       <View style={styles.segmentContainer}>
         <TouchableOpacity
           style={[styles.segmentBtn, activeTab === 'custom' && styles.segmentBtnActive]}
@@ -63,7 +63,7 @@ const ExerciseScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* 2. LISTA NÉZET */}
+      
       <ScrollView contentContainerStyle={styles.scrollList} showsVerticalScrollIndicator={false}>
         {activeTab === 'custom' ? (
           <View>
@@ -114,7 +114,7 @@ const ExerciseScreen = () => {
         )}
       </ScrollView>
 
-      {/* MODALS */}
+      
       <ActiveWorkoutModal
         visible={activeSessionVisible}
         plan={selectedPlan}

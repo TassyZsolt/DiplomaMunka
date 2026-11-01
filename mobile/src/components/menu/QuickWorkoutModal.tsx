@@ -67,7 +67,7 @@ export const QuickWorkoutModal: React.FC<QuickWorkoutModalProps> = ({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalCard}>
-          {/* Header */}
+          
           <View style={styles.modalHeaderRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={{ fontSize: 24, marginRight: 8 }}>🏋️</Text>
@@ -78,12 +78,12 @@ export const QuickWorkoutModal: React.FC<QuickWorkoutModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Description */}
+          
           <Text style={styles.modalDescription}>
             Válassz az alábbi lehetőségek közül az edzés és rekordok naplózásához:
           </Text>
 
-          {/* Option Tiles */}
+          
           {WORKOUT_OPTIONS.map((option) => (
             <TouchableOpacity
               key={option.screen}
@@ -100,7 +100,7 @@ export const QuickWorkoutModal: React.FC<QuickWorkoutModalProps> = ({
             </TouchableOpacity>
           ))}
 
-          {/* Cancel button */}
+          
           <TouchableOpacity
             style={[styles.cancelModalBtn, { marginTop: 12, width: '100%' }]}
             onPress={onClose}

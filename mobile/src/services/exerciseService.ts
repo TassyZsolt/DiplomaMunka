@@ -37,7 +37,7 @@ export interface ExerciseDoc {
 }
 
 export const SEED_EXERCISES: ExerciseDoc[] = [
-  // --- Calisthenics (Saját testsúly) ---
+  // Calisthenics
   {
     id: 'pull_up',
     name: 'Húzódzkodás',
@@ -139,7 +139,7 @@ export const SEED_EXERCISES: ExerciseDoc[] = [
     isCustom: false,
   },
 
-  // --- Gym (Súlyzós alapgyakorlatok) ---
+  // Gym
   {
     id: 'bench_press',
     name: 'Fekvenyomás',
@@ -261,7 +261,7 @@ export const SEED_EXERCISES: ExerciseDoc[] = [
     isCustom: false,
   },
 
-  // --- Mobility / Kardió ---
+  // Mobility & Kardió
   {
     id: 'treadmill_interval',
     name: 'Futópad intervall futás',
@@ -306,8 +306,7 @@ export const seedPredefinedExercises = async (): Promise<void> => {
 };
 
 /**
- * Lekéri az elérhető gyakorlatokat:
- * isCustom == false VAGY userId == currentUserId (Firestore or() lekérdezéssel)
+ * Lekéri az elérhető (alapértelmezett és saját) gyakorlatokat.
  */
 export async function fetchAvailableExercises(currentUserId?: string): Promise<ExerciseDoc[]> {
   const exercisesRef = collection(db, 'exercises');
@@ -348,9 +347,7 @@ export async function fetchAvailableExercises(currentUserId?: string): Promise<E
   }
 }
 
-/**
- * Visszafelé kompatibilis alias a getExercises hívásokhoz
- */
+
 export const getExercises = async (currentUserId?: string): Promise<ExerciseDoc[]> => {
   return fetchAvailableExercises(currentUserId);
 };

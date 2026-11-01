@@ -40,18 +40,18 @@ import { colors } from '../../themes/tokens';
 const DAILY_WATER_TARGET = 2000; // ml
 
 const StatScreen = ({ navigation }: any) => {
-  // 1. Vízfogyasztás állapot
+  // Vízfogyasztás
   const [totalWater, setTotalWater] = useState<number>(0);
   const [waterModalVisible, setWaterModalVisible] = useState<boolean>(false);
   const [customWaterAmount, setCustomWaterAmount] = useState<string>('');
 
-  // 2. Napi lépések állapot
+  // Lépésszámláló
   const [todaySteps, setTodaySteps] = useState<number>(6420);
 
-  // 3. Heti edzés statisztikák
+  // Heti statisztikák
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null);
 
-  // 4. PR adatok
+  // Rekordok
   const [exercises, setExercises] = useState<Exercise[]>(DEFAULT_EXERCISES);
   const [records, setRecords] = useState<Record<string, PersonalRecord>>({});
   const [prModalVisible, setPrModalVisible] = useState<boolean>(false);
@@ -63,14 +63,12 @@ const StatScreen = ({ navigation }: any) => {
   // Adatok betöltése képernyőre lépéskor
   const loadDashboardData = async () => {
     try {
-      // Víz
-      try {
+            try {
         const logs = await getWaterData();
         const total = logs.reduce((sum: number, log: any) => sum + (log.amountMl || 0), 0);
         setTotalWater(total);
       } catch (e) {
-        // vendég / offline esetén
-      }
+              }
 
       // Lépések a beépített hardverből
       try {
@@ -79,24 +77,21 @@ const StatScreen = ({ navigation }: any) => {
           setTodaySteps(stepsFromHw);
         }
       } catch (e) {
-        // megtartja az alapértelmezett értéket
-      }
+              }
 
-      // PR-ek
-      const [availExercises, prs] = await Promise.all([
+            const [availExercises, prs] = await Promise.all([
         getAvailableExercises(),
         getPersonalRecords(),
       ]);
       setExercises(availExercises);
       setRecords(prs);
 
-      // Edzés statisztikák
-      try {
+            try {
         const workoutSessions = await getWorkoutSessions();
         const computedWeekly = getWeeklyWorkoutStats(workoutSessions);
         setWeeklyStats(computedWeekly);
       } catch (e) {
-        // ignore
+        
       }
     } catch (error) {
       console.error('Hiba az áttekintő adatok betöltésekor:', error);
@@ -190,7 +185,7 @@ const StatScreen = ({ navigation }: any) => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Fejléc */}
+      
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.screenTitle}>Statisztikák</Text>
@@ -201,10 +196,7 @@ const StatScreen = ({ navigation }: any) => {
         </View>
       </View>
 
-      {/* ========================================================
-          1. SZEKCIÓ (HIGH FREQUENCY): NAPI LÉPÉSEK & AKTIVITÁS
-          Tapping bridges directly to StepCounter drill-down
-      ======================================================== */}
+      
       <TouchableOpacity
         style={styles.cardContainer}
         activeOpacity={0.85}
@@ -240,7 +232,7 @@ const StatScreen = ({ navigation }: any) => {
             </View>
           </View>
 
-          {/* Micro-visual: Mini kördiagram */}
+          
           <View style={styles.miniRingWrapper}>
             <Svg width={stepSize} height={stepSize}>
               <Circle
@@ -272,10 +264,7 @@ const StatScreen = ({ navigation }: any) => {
         </View>
       </TouchableOpacity>
 
-      {/* ========================================================
-          2. SZEKCIÓ (HIGH FREQUENCY): NAPI VÍZFOGYASZTÁS
-          Compact card with circular progress and quick log pills
-      ======================================================== */}
+      
       <View style={styles.cardContainer}>
         <View style={styles.cardHeaderRow}>
           <View style={styles.cardTitleWithIcon}>
@@ -293,7 +282,7 @@ const StatScreen = ({ navigation }: any) => {
         </View>
 
         <View style={styles.waterContentRow}>
-          {/* Kördiagram */}
+          
           <View style={styles.waterRingContainer}>
             <Svg width={waterSize} height={waterSize}>
               <Circle
@@ -325,7 +314,7 @@ const StatScreen = ({ navigation }: any) => {
             </View>
           </View>
 
-          {/* Gyors rögzítési gombok */}
+          
           <View style={styles.waterPillsCol}>
             <TouchableOpacity style={styles.waterPill} onPress={() => handleAddWater(250)}>
               <Text style={styles.waterPillText}>+250 ml</Text>
@@ -345,10 +334,7 @@ const StatScreen = ({ navigation }: any) => {
         </View>
       </View>
 
-      {/* ========================================================
-          3. SZEKCIÓ (MEDIUM FREQUENCY): WORKOUTS & VOLUME
-          Tapping bridges directly to WorkoutProgress drill-down
-      ======================================================== */}
+      
       <TouchableOpacity
         style={styles.cardContainer}
         activeOpacity={0.85}
@@ -369,7 +355,7 @@ const StatScreen = ({ navigation }: any) => {
           </View>
         </View>
 
-        {/* Heti teljesítmény összefoglaló */}
+        
         <View style={styles.workoutStatsRow}>
           <View>
             <Text style={styles.workoutMainValue}>
@@ -382,7 +368,7 @@ const StatScreen = ({ navigation }: any) => {
             </Text>
           </View>
 
-          {/* Heti napok mikro-indikátorok (H, K, Sze, Cs, P, Szo, V) */}
+          
           <View style={styles.weekDotsRow}>
             {(weeklyStats?.weekDays || [
               { dayName: 'H', status: 'rest', isToday: false },
@@ -421,10 +407,7 @@ const StatScreen = ({ navigation }: any) => {
         </View>
       </TouchableOpacity>
 
-      {/* ========================================================
-          4. SZEKCIÓ (SLOW-CHANGING MILESTONES): SZEMÉLYES REKORDOK (PRs)
-          Tapping bridges directly to PersonalStats drill-down
-      ======================================================== */}
+      
       <TouchableOpacity
         style={styles.cardContainer}
         activeOpacity={0.85}
@@ -445,13 +428,13 @@ const StatScreen = ({ navigation }: any) => {
           </View>
         </View>
 
-        {/* Összesített súly banner */}
+        
         <View style={styles.totalPrRow}>
           <Text style={styles.totalPrLabel}>Összesített rekord (Total):</Text>
           <Text style={styles.totalPrWeight}>{totalPrWeight} kg</Text>
         </View>
 
-        {/* A 3 legfőbb gyakorlat előnézete */}
+        
         <View style={styles.prPreviewList}>
           {exercises.map((exercise) => {
             const pr = records[exercise.id];
@@ -489,10 +472,9 @@ const StatScreen = ({ navigation }: any) => {
         </View>
       </TouchableOpacity>
 
-      {/* ========================================================
-          MODALOK
-      ======================================================== */}
-      {/* Egyéni vízmennyiség Modal */}
+      
+
+      
       <Modal
         visible={waterModalVisible}
         transparent={true}
@@ -539,7 +521,7 @@ const StatScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </Modal>
 
-      {/* Gyors PR szerkesztés Modal */}
+      
       <Modal
         visible={prModalVisible}
         transparent={true}

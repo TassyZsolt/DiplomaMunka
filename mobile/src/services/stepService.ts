@@ -47,14 +47,7 @@ export const requestPedometerPermission = async (): Promise<boolean> => {
 };
 
 /**
- * Lekéri a mai napon eddig megtett lépéseket (éjféltől mostanáig).
- * 
- * MEGJEGYZÉS:
- * Androidon a beépített `getStepCountAsync` metódushoz Google Fit / Health Connect
- * integráció szükséges a múltbeli időpontok lekérdezéséhez (különben kivételt dob).
- * Valós Android készüléken a hardveres `watchStepCount` élő számláló működik out-of-the-box.
- * Emiatt hibák esetén csendesen visszatérünk a gyorsítótárazott lépésekkel,
- * felesleges konzol-figyelmeztetések nélkül.
+ * Lekéri a mai napon rögzített lépéseket.
  */
 export const getTodaySteps = async (): Promise<number> => {
   try {

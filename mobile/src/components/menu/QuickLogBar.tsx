@@ -20,7 +20,7 @@ export const QuickLogBar: React.FC<QuickLogBarProps> = ({
 }) => {
     return (
         <View style={styles.container}>
-            {/* Szekció fejléc */}
+            
             <View style={styles.sectionHeaderRow}>
                 <View>
                     <Text style={styles.sectionTitle}>Gyors rögzítés</Text>
@@ -28,9 +28,9 @@ export const QuickLogBar: React.FC<QuickLogBarProps> = ({
                 </View>
             </View>
 
-            {/* 3 gombos rács */}
+            
             <View style={styles.quickLogGrid}>
-                {/* 1. Étkezés Rögzítése */}
+                
                 <TouchableOpacity
                     style={[styles.quickLogButton, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}
                     activeOpacity={0.75}
@@ -43,7 +43,7 @@ export const QuickLogBar: React.FC<QuickLogBarProps> = ({
                     <Text style={styles.quickLogSubtitle}>Kalóriák & ételek</Text>
                 </TouchableOpacity>
 
-                {/* 2. Vízbevitel */}
+                
                 <TouchableOpacity
                     style={[styles.quickLogButton, { backgroundColor: '#F0F9FF', borderColor: '#BAE6FD' }]}
                     activeOpacity={0.75}
@@ -56,7 +56,7 @@ export const QuickLogBar: React.FC<QuickLogBarProps> = ({
                     <Text style={styles.quickLogSubtitle}>Pohár / kulacs</Text>
                 </TouchableOpacity>
 
-                {/* 3. Edzés Indítás / Rögzítés */}
+                
                 <TouchableOpacity
                     style={[styles.quickLogButton, { backgroundColor: '#FAF5FF', borderColor: '#E9D5FF' }]}
                     activeOpacity={0.75}

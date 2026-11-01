@@ -88,7 +88,7 @@ export const HubNavigationGrid: React.FC<HubNavigationGridProps> = ({
 
     return (
         <View style={styles.container}>
-            {/* Szekció fejléc */}
+            
             <View style={styles.sectionHeaderRow}>
                 <View>
                     <Text style={styles.sectionTitle}>Alkalmazás menü</Text>
@@ -97,7 +97,7 @@ export const HubNavigationGrid: React.FC<HubNavigationGridProps> = ({
                 </View>
             </View>
 
-            {/* 6 Kártyás rács */}
+            
             <View style={styles.hubGrid}>
                 {HUB_ITEMS.map((item) => (
                     <TouchableOpacity
@@ -118,7 +118,7 @@ export const HubNavigationGrid: React.FC<HubNavigationGridProps> = ({
                 ))}
             </View>
 
-            {/* Kijelentkezés szekció */}
+            
             <View style={styles.logoutSection}>
                 <TouchableOpacity style={styles.logoutBtn} onPress={onLogout}>
                     <Text style={styles.logoutBtnText}>🚪 Kijelentkezés a fiókból</Text>

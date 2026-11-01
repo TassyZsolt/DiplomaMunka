@@ -50,16 +50,15 @@ const MenuScreen = ({ navigation }: any) => {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
       >
-        {/* 1. FEJLÉC (USER AVATAR, NÉV, KÖSZÖNTŐ ÜZENET) */}
+        
         <MenuHeader
           userName={userName}
           onNavigateProfile={() => navigation.navigate('Profil')}
         />
 
-        {/* daily log modal */}
-        {/* ========================================================================= */}
-        {/* 2. NAPI AKTIVITÁS ÉS HALADÁS (LÉPÉSEK, KALÓRIA, VÍZ) */}
-        {/* ========================================================================= */}
+
+        
+
         <DashboardStats
           todaySteps={todaySteps}
           consumedCalories={consumedCalories}
@@ -93,7 +92,7 @@ const MenuScreen = ({ navigation }: any) => {
         <View style={{ height: 32 }} />
       </ScrollView>
 
-      {/* Quick log meal modal */}
+      
       <QuickMealModal
         visible={mealModalVisible}
         onClose={() => setMealModalVisible(false)}
@@ -104,7 +103,7 @@ const MenuScreen = ({ navigation }: any) => {
         onNavigateDiet={() => navigation.navigate('Diet')}
       />
 
-      {/* Quick log water modal */}
+      
       <QuickWaterModal
         visible={waterModalVisible}
         todayWater={todayWater}
@@ -113,7 +112,7 @@ const MenuScreen = ({ navigation }: any) => {
         onSuccess={(updatedWater) => setTodayWater(updatedWater)}
       />
 
-      {/* Quick log workout modal */}
+      
       <QuickWorkoutModal
         visible={workoutModalVisible}
         onClose={() => setWorkoutModalVisible(false)}

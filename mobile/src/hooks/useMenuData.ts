@@ -14,22 +14,22 @@ import { getTodayConsumedCalories } from '../services/dietService';
 import { getWorkoutPlans, WorkoutPlan } from '../services/workoutService';
 
 export const useMenuData = () => {
-  // 1. Felhasználói adatok
+  // Felhasználói profil
   const [userData, setUserData] = useState<any>(null);
   const [userName, setUserName] = useState<string>('Sportoló');
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  // 2. Napi aktivitás és haladás
+  // Aktivitás és célok
   const [todaySteps, setTodaySteps] = useState<number>(6420);
   const [consumedCalories, setConsumedCalories] = useState<number>(0);
   const [todayWater, setTodayWater] = useState<number>(0);
 
-  // 3. Mai fókusz edzéstervek
+  // Edzéstervek
   const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
   const [selectedPlanIndex, setSelectedPlanIndex] = useState<number>(0);
 
-  // 4. Gyors rögzítés modal állapotok
+  // Modális ablakok
   const [mealModalVisible, setMealModalVisible] = useState<boolean>(false);
   const [waterModalVisible, setWaterModalVisible] = useState<boolean>(false);
   const [workoutModalVisible, setWorkoutModalVisible] = useState<boolean>(false);

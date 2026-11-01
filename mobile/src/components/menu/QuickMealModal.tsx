@@ -80,7 +80,7 @@ export const QuickMealModal: React.FC<QuickMealModalProps> = ({
             Rögzítsd a mai fogyasztásod, amely automatikusan frissíti a napi kalóriaszámlálót!
           </Text>
 
-          {/* Étkezés típusa chipek */}
+          
           <Text style={styles.inputLabel}>Étkezés fajtája:</Text>
           <View style={styles.mealTypeRow}>
             {['Reggeli', 'Ebéd', 'Vacsora', 'Snack'].map((type) => (
@@ -96,7 +96,7 @@ export const QuickMealModal: React.FC<QuickMealModalProps> = ({
             ))}
           </View>
 
-          {/* Étel neve */}
+          
           <Text style={styles.inputLabel}>Étel / Fogás megnevezése (opcionális):</Text>
           <TextInput
             style={styles.textInput}
@@ -106,7 +106,7 @@ export const QuickMealModal: React.FC<QuickMealModalProps> = ({
             onChangeText={setMealName}
           />
 
-          {/* Kalória */}
+          
           <Text style={styles.inputLabel}>Elfogyasztott kalória (kcal):</Text>
           <TextInput
             style={styles.textInput}
@@ -117,7 +117,7 @@ export const QuickMealModal: React.FC<QuickMealModalProps> = ({
             onChangeText={setMealCalories}
           />
 
-          {/* Gyors kalória hozzáadó gombok */}
+          
           <View style={styles.quickCalPillsRow}>
             {[200, 350, 500, 750].map((val) => (
               <TouchableOpacity
@@ -151,7 +151,7 @@ export const QuickMealModal: React.FC<QuickMealModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Közvetlen navigáció az Étrend képernyőre */}
+          
           <TouchableOpacity
             style={styles.modalDietScreenLink}
             onPress={() => {

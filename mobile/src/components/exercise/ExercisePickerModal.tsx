@@ -56,7 +56,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
     return (
         <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
             <View style={styles.container}>
-                {/* Header */}
+                
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>Gyakorlat Kiválasztása</Text>
                     <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -64,7 +64,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
                     </TouchableOpacity>
                 </View>
 
-                {/* Keresőmező */}
+                
                 <View style={styles.searchBarWrapper}>
                     <TextInput
                         style={styles.searchBarInput}
@@ -75,7 +75,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
                     />
                 </View>
 
-                {/* Kategória szűrő chipek */}
+                
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -96,7 +96,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
                     ))}
                 </ScrollView>
 
-                {/* Új egyéni gyakorlat létrehozása gomb */}
+                
                 <TouchableOpacity style={styles.createCustomRowBtn}
                     onPress={onOpenCreateCustom}>
                     <Text style={styles.createCustomRowText}>
@@ -104,7 +104,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
                     </Text>
                 </TouchableOpacity>
 
-                {/* Gyakorlatok listája */}
+                
                 <ScrollView contentContainerStyle={styles.listContainer}>
                     {filteredExercises.map((ex) => {
                         const canDelete = Boolean(

@@ -30,7 +30,7 @@ export const DailyFocusCard: React.FC<DailyFocusCardProps> = ({
 
     return (
         <View style={styles.container}>
-            {/* Szekció fejléc */}
+            
             <View style={styles.sectionHeaderRow}>
                 <View>
                     <Text style={styles.sectionTitle}>Mai fókusz</Text>
@@ -42,7 +42,7 @@ export const DailyFocusCard: React.FC<DailyFocusCardProps> = ({
                 </TouchableOpacity>
             </View>
 
-            {/* Terv választó horizontális sáv */}
+            
             {workoutPlans.length > 0 && (
                 <ScrollView
                     horizontal
@@ -68,7 +68,7 @@ export const DailyFocusCard: React.FC<DailyFocusCardProps> = ({
                 </ScrollView>
             )}
 
-            {/* Kiemelt Mai Edzésterv Kártya */}
+            
             {currentFocusPlan && (
                 <View style={styles.focusWorkoutCard}>
                     <View style={styles.focusWorkoutTop}>
@@ -91,7 +91,7 @@ export const DailyFocusCard: React.FC<DailyFocusCardProps> = ({
                         {currentFocusPlan.description}
                     </Text>
 
-                    {/* Gyakorlat előnézet chipek */}
+                    
                     <View style={styles.exercisesPreviewWrapper}>
                         <Text style={styles.exercisesPreviewHeading}>
                             Tartalmazott gyakorlatok ({currentFocusPlan.exercises.length}):
@@ -117,7 +117,7 @@ export const DailyFocusCard: React.FC<DailyFocusCardProps> = ({
                         </View>
                     </View>
 
-                    {/* Műveleti gombok */}
+                    
                     <View style={styles.focusActionRow}>
                         <TouchableOpacity
                             style={styles.startWorkoutPrimaryBtn}

@@ -139,9 +139,8 @@ const LoginScreen = ({ navigation }: any) => {
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets={true}
         >
-          {/* ========================================================================= */}
-          {/* 1. VISSZA GOMB / CANCEL (Csak ha van korábbi képernyő a veremben) */}
-          {/* ========================================================================= */}
+        
+          
           {navigation.canGoBack() ? (
             <View style={styles.topBar}>
               <TouchableOpacity
@@ -165,9 +164,8 @@ const LoginScreen = ({ navigation }: any) => {
             <View style={{ height: 8 }} />
           )}
 
-          {/* ========================================================================= */}
-          {/* 2. LOGÓ, APP NÉV ÉS ÜDVÖZLŐ FEJLÉC */}
-          {/* ========================================================================= */}
+          
+
           <View style={styles.headerContainer}>
             <View style={styles.logoBadge}>
               <Text style={styles.logoEmoji}>🏃</Text>
@@ -179,11 +177,10 @@ const LoginScreen = ({ navigation }: any) => {
             </Text>
           </View>
 
-          {/* ========================================================================= */}
-          {/* 3. BEJELENTKEZÉSI ŰRLAP (EMAIL, JELSZÓ, EYE TOGGLE, ELFELEJTETT JELSZÓ) */}
-          {/* ========================================================================= */}
+
+          
           <View style={styles.formContainer}>
-            {/* E-mail mező */}
+            
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>E-mail cím</Text>
               <View style={styles.inputWrapper}>
@@ -219,7 +216,7 @@ const LoginScreen = ({ navigation }: any) => {
               </View>
             </View>
 
-            {/* Jelszó mező szem (eye) kapcsolóval */}
+            
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Jelszó</Text>
               <View style={styles.inputWrapper}>
@@ -302,7 +299,7 @@ const LoginScreen = ({ navigation }: any) => {
               </View>
             </View>
 
-            {/* Elfelejtett jelszó link */}
+            
             <View style={styles.forgotPasswordRow}>
               <TouchableOpacity
                 onPress={() => {
@@ -315,7 +312,7 @@ const LoginScreen = ({ navigation }: any) => {
               </TouchableOpacity>
             </View>
 
-            {/* Fő Bejelentkezés gomb */}
+            
             <TouchableOpacity
               style={[styles.loginButton, loading && styles.loginButtonDisabled]}
               onPress={handleLogin}
@@ -330,20 +327,16 @@ const LoginScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          {/* ========================================================================= */}
-          {/* 4. ELVÁLASZTÓ (VAGY FOLYTATÁS EZZEL) */}
-          {/* ========================================================================= */}
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>vagy folytatás ezzel</Text>
             <View style={styles.dividerLine} />
           </View>
 
-          {/* ========================================================================= */}
-          {/* 5. KÖZÖSSÉGI BEJELENTKEZÉSI GOMBOK (GOOGLE & APPLE) */}
-          {/* ========================================================================= */}
+          
+
           <View style={styles.socialButtonsContainer}>
-            {/* Google gomb */}
+            
             <TouchableOpacity
               style={styles.googleButton}
               onPress={() => handleSocialLogin('Google')}
@@ -370,7 +363,7 @@ const LoginScreen = ({ navigation }: any) => {
               <Text style={styles.googleButtonText}>Folytatás Google-fiókkal</Text>
             </TouchableOpacity>
 
-            {/* Apple gomb */}
+            
             <TouchableOpacity
               style={styles.appleButton}
               onPress={() => handleSocialLogin('Apple')}
@@ -383,9 +376,8 @@ const LoginScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          {/* ========================================================================= */}
-          {/* 6. LÁBLÉC (REGISZTRÁCIÓ LINK) */}
-          {/* ========================================================================= */}
+
+          
           <View style={styles.footerRow}>
             <Text style={styles.footerPromptText}>Nincs még fiókod?</Text>
             <TouchableOpacity
@@ -399,9 +391,8 @@ const LoginScreen = ({ navigation }: any) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* ========================================================================= */}
-      {/* ELFELEJTETT JELSZÓ MODAL */}
-      {/* ========================================================================= */}
+      
+
       <Modal
         visible={forgotModalVisible}
         transparent
@@ -484,8 +475,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
 
-  // 1. VISSZA GOMB
-  topBar: {
+    topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
@@ -506,8 +496,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
 
-  // 2. LOGÓ & FEJLÉC
-  headerContainer: {
+    headerContainer: {
     alignItems: 'center',
     marginBottom: 28,
   },
@@ -553,8 +542,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
 
-  // 3. ŰRLAP
-  formContainer: {
+    formContainer: {
     marginBottom: 20,
   },
   inputGroup: {
@@ -622,7 +610,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // 4. ELVÁLASZTÓ
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -640,8 +627,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
 
-  // 5. KÖZÖSSÉGI GOMBOK
-  socialButtonsContainer: {
+    socialButtonsContainer: {
     gap: 12,
     marginBottom: 26,
   },
@@ -686,8 +672,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 
-  // 6. LÁBLÉC
-  footerRow: {
+    footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -704,8 +689,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // ELFELEJTETT JELSZÓ MODAL
-  modalOverlay: {
+    modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.5)',
     justifyContent: 'center',
