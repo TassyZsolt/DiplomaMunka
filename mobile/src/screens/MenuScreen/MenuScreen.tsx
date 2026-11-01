@@ -34,10 +34,10 @@ import {
 import { getWaterData, addWaterData } from '../../services/waterService';
 import {
   getTodayConsumedCalories,
-  addMealData,
   DEFAULT_DAILY_CALORIE_GOAL,
 } from '../../services/dietService';
 import { getWorkoutPlans, WorkoutPlan } from '../../services/workoutService';
+import { QuickMealModal } from '../../components/menu/QuickMealModal';
 
 // Napi folyadék célkitűzés
 const DAILY_WATER_GOAL = 2000; // ml
@@ -64,11 +64,6 @@ const MenuScreen = ({ navigation }: any) => {
   const [workoutModalVisible, setWorkoutModalVisible] = useState<boolean>(false);
 
   // Form állapotok
-  const [mealName, setMealName] = useState<string>('');
-  const [mealCalories, setMealCalories] = useState<string>('');
-  const [mealType, setMealType] = useState<string>('Ebéd');
-  const [isSavingMeal, setIsSavingMeal] = useState<boolean>(false);
-
   const [waterInput, setWaterInput] = useState<string>('250');
   const [isSavingWater, setIsSavingWater] = useState<boolean>(false);
 
@@ -190,31 +185,6 @@ const MenuScreen = ({ navigation }: any) => {
       'július', 'augusztus', 'szeptember', 'október', 'november', 'december'
     ];
     return `${now.getFullYear()}. ${months[now.getMonth()]} ${now.getDate()}., ${days[now.getDay()]}`;
-  };
-
-  // Gyors étkezés rögzítése
-  const handleSaveMeal = async () => {
-    const cals = parseInt(mealCalories, 10);
-    if (isNaN(cals) || cals <= 0) {
-      Alert.alert('Figyelem', 'Kérlek adj meg érvényes kalóriamennyiséget (pl. 450 kcal)!');
-      return;
-    }
-
-    try {
-      setIsSavingMeal(true);
-      await addMealData(mealName.trim() || `${mealType} étkezés`, cals, mealType);
-      const updatedCals = await getTodayConsumedCalories();
-      setConsumedCalories(updatedCals);
-
-      setMealName('');
-      setMealCalories('');
-      setMealModalVisible(false);
-      Alert.alert('Sikeres rögzítés 🎉', `${cals} kcal hozzáadva a mai fogyasztáshoz!`);
-    } catch (error: any) {
-      Alert.alert('Hiba', error.message || 'Nem sikerült elmenteni az étkezést.');
-    } finally {
-      setIsSavingMeal(false);
-    }
   };
 
   // Gyors vízbevitel rögzítése
@@ -730,115 +700,15 @@ const MenuScreen = ({ navigation }: any) => {
       {/* ========================================================================= */}
       {/* MODAL 1: ÉTKEZÉS RÖGZÍTÉSE (QUICK LOG MEAL) */}
       {/* ========================================================================= */}
-      <Modal
+      <QuickMealModal
         visible={mealModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setMealModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.modalOverlay}
-        >
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeaderRow}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ fontSize: 24, marginRight: 8 }}>🥗</Text>
-                <Text style={styles.modalTitle}>Étkezés naplózása</Text>
-              </View>
-              <TouchableOpacity onPress={() => setMealModalVisible(false)} style={styles.closeBtn}>
-                <Text style={styles.closeBtnText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.modalDescription}>
-              Rögzítsd a mai fogyasztásod, amely automatikusan frissíti a napi kalóriaszámlálót!
-            </Text>
-
-            {/* Étkezés típusa chipek */}
-            <Text style={styles.inputLabel}>Étkezés fajtája:</Text>
-            <View style={styles.mealTypeRow}>
-              {['Reggeli', 'Ebéd', 'Vacsora', 'Snack'].map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[styles.mealTypeChip, mealType === type && styles.mealTypeChipActive]}
-                  onPress={() => setMealType(type)}
-                >
-                  <Text style={[styles.mealTypeChipText, mealType === type && styles.mealTypeChipTextActive]}>
-                    {type}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Étel neve */}
-            <Text style={styles.inputLabel}>Étel / Fogás megnevezése (opcionális):</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="pl. Csirkemell rizzsel, Fehérjeturmix"
-              placeholderTextColor="#94A3B8"
-              value={mealName}
-              onChangeText={setMealName}
-            />
-
-            {/* Kalória */}
-            <Text style={styles.inputLabel}>Elfogyasztott kalória (kcal):</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="pl. 450"
-              placeholderTextColor="#94A3B8"
-              keyboardType="numeric"
-              value={mealCalories}
-              onChangeText={setMealCalories}
-            />
-
-            {/* Gyors kalória hozzáadó gombok */}
-            <View style={styles.quickCalPillsRow}>
-              {[200, 350, 500, 750].map((val) => (
-                <TouchableOpacity
-                  key={val}
-                  style={styles.quickCalPill}
-                  onPress={() => setMealCalories(String(val))}
-                >
-                  <Text style={styles.quickCalPillText}>+{val} kcal</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={styles.modalActionRow}>
-              <TouchableOpacity
-                style={styles.cancelModalBtn}
-                onPress={() => setMealModalVisible(false)}
-              >
-                <Text style={styles.cancelModalBtnText}>Mégse</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.submitModalBtn}
-                onPress={handleSaveMeal}
-                disabled={isSavingMeal}
-              >
-                {isSavingMeal ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                ) : (
-                  <Text style={styles.submitModalBtnText}>Rögzítés</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-
-            {/* Közvetlen navigáció az Étrend képernyőre */}
-            <TouchableOpacity
-              style={styles.modalDietScreenLink}
-              onPress={() => {
-                setMealModalVisible(false);
-                navigation.navigate('Diet');
-              }}
-            >
-              <Text style={styles.modalDietScreenLinkText}>Ugrás az Étrend képernyőre ›</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        onClose={() => setMealModalVisible(false)}
+        onSuccess={async () => {
+          const updatedCals = await getTodayConsumedCalories();
+          setConsumedCalories(updatedCals);
+        }}
+        onNavigateDiet={() => navigation.navigate('Diet')}
+      />
 
       {/* ========================================================================= */}
       {/* MODAL 2: VÍZBEVITEL RÖGZÍTÉSE (QUICK LOG WATER) */}
