@@ -34,9 +34,3 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
-
-# AI Agent instructions (keep local only)                                         
-AGENTS.md                                                                         
-GEMINI.md                                                                         
-.agents/                                                                          
-.gemini/ 
