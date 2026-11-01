@@ -36,7 +36,8 @@ import { getWorkoutPlans, WorkoutPlan } from '../../services/workoutService';
 import { QuickMealModal } from '../../components/menu/QuickMealModal';
 import { QuickWaterModal } from '../../components/menu/QuickWaterModal';
 import { QuickWorkoutModal } from '../../components/menu/QuickWorkoutModal';
-import {QuickLogBar} from '../../components/menu/QuickLogBar';
+import { QuickLogBar } from '../../components/menu/QuickLogBar';
+import { DailyFocusCard } from '../../components/menu/DailyFocusCard';
 
 // Napi folyadék célkitűzés
 const DAILY_WATER_GOAL = 2000; // ml
@@ -205,8 +206,6 @@ const MenuScreen = ({ navigation }: any) => {
   const stepPercent = Math.min(100, Math.round((todaySteps / DAILY_STEP_GOAL) * 100));
   const caloriePercent = Math.min(100, Math.round((consumedCalories / DEFAULT_DAILY_CALORIE_GOAL) * 100));
   const waterPercent = Math.min(100, Math.round((todayWater / DAILY_WATER_GOAL) * 100));
-
-  const currentFocusPlan = workoutPlans[selectedPlanIndex] || workoutPlans[0];
 
   // SVG kördiagram segédszámítások lépésekhez
   const ringSize = 74;
@@ -406,111 +405,20 @@ const MenuScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
 
-        <QuickLogBar                                                                                
-              onOpenMealModal={() => setMealModalVisible(true)}                                         
-              onOpenWaterModal={() => setWaterModalVisible(true)}                                       
-              onOpenWorkoutModal={() => setWorkoutModalVisible(true)}                                   
-            /> 
+        <QuickLogBar
+          onOpenMealModal={() => setMealModalVisible(true)}
+          onOpenWaterModal={() => setWaterModalVisible(true)}
+          onOpenWorkoutModal={() => setWorkoutModalVisible(true)}
+        />
 
-        {/* ========================================================================= */}
-        {/* 4. MAI FÓKUSZ (PREDEFINED EXERCISES WORKOUT PLANS) */}
-        {/* ========================================================================= */}
-        <View style={styles.sectionHeaderRow}>
-          <View>
-            <Text style={styles.sectionTitle}>Mai fókusz</Text>
-            <Text style={styles.sectionSub}>Előre definiált edzéstervek a fitnesz céljaidhoz</Text>
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Exercise')}>
-            <Text style={styles.viewAllLink}>Mind ({workoutPlans.length}) ›</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Terv választó horizontális sáv */}
-        {workoutPlans.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.planSelectorRow}
-          >
-            {workoutPlans.map((plan, index) => {
-              const isSelected = index === selectedPlanIndex;
-              return (
-                <TouchableOpacity
-                  key={plan.id}
-                  style={[styles.planPill, isSelected && styles.planPillActive]}
-                  activeOpacity={0.8}
-                  onPress={() => setSelectedPlanIndex(index)}
-                >
-                  <Text style={[styles.planPillText, isSelected && styles.planPillTextActive]}>
-                    {plan.name.split(' ')[0]}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        )}
-
-        {/* Kiemelt Mai Edzésterv Kártya */}
-        {currentFocusPlan && (
-          <View style={styles.focusWorkoutCard}>
-            <View style={styles.focusWorkoutTop}>
-              <View>
-                <View style={styles.focusPlanBadge}>
-                  <Text style={styles.focusPlanBadgeText}>MAI AJÁNLÁS</Text>
-                </View>
-                <Text style={styles.focusWorkoutName}>{currentFocusPlan.name}</Text>
-                <Text style={styles.focusWorkoutCategory}>{currentFocusPlan.category}</Text>
-              </View>
-
-              <View style={styles.focusDurationBadge}>
-                <Text style={styles.focusDurationText}>⏱️ {currentFocusPlan.durationEst}</Text>
-              </View>
-            </View>
-
-            <Text style={styles.focusWorkoutDesc} numberOfLines={2}>
-              {currentFocusPlan.description}
-            </Text>
-
-            {/* Gyakorlat előnézet chipek */}
-            <View style={styles.exercisesPreviewWrapper}>
-              <Text style={styles.exercisesPreviewHeading}>
-                Tartalmazott gyakorlatok ({currentFocusPlan.exercises.length}):
-              </Text>
-              <View style={styles.exerciseChipsRow}>
-                {currentFocusPlan.exercises.slice(0, 4).map((ex, idx) => (
-                  <View key={idx} style={styles.singleExChip}>
-                    <Text style={styles.singleExChipText}>• {ex.name}</Text>
-                  </View>
-                ))}
-                {currentFocusPlan.exercises.length > 4 && (
-                  <View style={[styles.singleExChip, { backgroundColor: '#E2E8F0' }]}>
-                    <Text style={[styles.singleExChipText, { color: colors.neutral[700] }]}>
-                      +{currentFocusPlan.exercises.length - 4} további
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-
-            {/* Műveleti gombok */}
-            <View style={styles.focusActionRow}>
-              <TouchableOpacity
-                style={styles.startWorkoutPrimaryBtn}
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate('Exercise')}
-              >
-                <Text style={styles.startWorkoutBtnText}>Edzés megtekintése & Indítás ▶</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.viewProgressBtn}
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate('WorkoutProgress')}
-              >
-                <Text style={styles.viewProgressBtnText}>Előzmények</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        <DailyFocusCard
+          workoutPlans={workoutPlans}
+          selectedPlanIndex={selectedPlanIndex}
+          onSelectPlan={setSelectedPlanIndex}
+          onStartWorkout={() => navigation.navigate('Exercise')}
+          onViewProgress={() => navigation.navigate('WorkoutProgress')}
+          onViewAllPlans={() => navigation.navigate('Exercise')}
+        />
 
         {/* ========================================================================= */}
         {/* 5. FŐ MODULOK / GYORS NAVIGÁCIÓ (A KORÁBBI 4 GOMB MODERN MEGVALÓSÍTÁSA) */}
@@ -951,157 +859,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.neutral[500],
     fontWeight: '500',
-  },
-
-  // 4. MAI FÓKUSZ (WORKOUT PLANS)
-  planSelectorRow: {
-    paddingVertical: 4,
-    marginBottom: 10,
-  },
-  planPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  planPillActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  planPillText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.neutral[700],
-  },
-  planPillTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-
-  focusWorkoutCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 18,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  focusWorkoutTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  focusPlanBadge: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    marginBottom: 4,
-    alignSelf: 'flex-start',
-  },
-  focusPlanBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#92400E',
-    letterSpacing: 0.5,
-  },
-  focusWorkoutName: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.neutral[900],
-  },
-  focusWorkoutCategory: {
-    fontSize: 12,
-    color: colors.neutral[500],
-    marginTop: 1,
-  },
-  focusDurationBadge: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  focusDurationText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.neutral[800],
-  },
-  focusWorkoutDesc: {
-    fontSize: 13,
-    color: colors.neutral[600],
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-
-  exercisesPreviewWrapper: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 14,
-  },
-  exercisesPreviewHeading: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.neutral[500],
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  exerciseChipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  singleExChip: {
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  singleExChipText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-
-  focusActionRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  startWorkoutPrimaryBtn: {
-    flex: 2,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  startWorkoutBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  viewProgressBtn: {
-    flex: 1,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  viewProgressBtnText: {
-    color: colors.neutral[800],
-    fontWeight: '600',
-    fontSize: 13,
   },
 
   // 5. FŐ MODULOK / HUB
