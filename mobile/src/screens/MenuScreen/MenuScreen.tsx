@@ -5,18 +5,15 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Image,
   ActivityIndicator,
   RefreshControl,
   Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import Svg, { Path } from 'react-native-svg';
 import { auth, db } from '../../../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { colors } from '../../themes/tokens';
-import placeholderAvatar from '../../../assets/images/placeholderAvatar.jpg';
 
 // Szolgáltatások importálása a meglévő logika újrahasznosításához
 import {
@@ -27,13 +24,14 @@ import {
 import { getWaterData } from '../../services/waterService';
 import { getTodayConsumedCalories } from '../../services/dietService';
 import { getWorkoutPlans, WorkoutPlan } from '../../services/workoutService';
-import { QuickMealModal } from '../../components/menu/QuickMealModal';
-import { QuickWaterModal } from '../../components/menu/QuickWaterModal';
-import { QuickWorkoutModal } from '../../components/menu/QuickWorkoutModal';
+import { MenuHeader } from '../../components/menu/MenuHeader';
+import { DashboardStats } from '../../components/menu/DashboardStats';
 import { QuickLogBar } from '../../components/menu/QuickLogBar';
 import { DailyFocusCard } from '../../components/menu/DailyFocusCard';
 import { HubNavigationGrid } from '../../components/menu/HubNavigationGrid';
-import { DashboardStats } from '../../components/menu/DashboardStats';
+import { QuickMealModal } from '../../components/menu/QuickMealModal';
+import { QuickWaterModal } from '../../components/menu/QuickWaterModal';
+import { QuickWorkoutModal } from '../../components/menu/QuickWorkoutModal';
 
 // Napi folyadék célkitűzés
 const DAILY_WATER_GOAL = 2000; // ml
@@ -147,38 +145,6 @@ const MenuScreen = ({ navigation }: any) => {
     loadDashboardData();
   };
 
-  // Időszaknak megfelelő köszöntés kalkulálása
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) {
-      return {
-        greeting: 'Jó reggelt! ☀️',
-        subtext: 'Induljon energikusan a mai nap!',
-      };
-    } else if (hour >= 12 && hour < 18) {
-      return {
-        greeting: 'Szép napot! 🌤️',
-        subtext: 'Tarts ki a mai egészségcéljaid mellett!',
-      };
-    } else {
-      return {
-        greeting: 'Jó estét! 🌙',
-        subtext: 'Nézd meg a mai napod eredményeit!',
-      };
-    }
-  };
-
-  // Dátum formázása
-  const getFormattedDate = () => {
-    const now = new Date();
-    const days = ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek', 'Szombat'];
-    const months = [
-      'január', 'február', 'március', 'április', 'május', 'június',
-      'július', 'augusztus', 'szeptember', 'október', 'november', 'december'
-    ];
-    return `${now.getFullYear()}. ${months[now.getMonth()]} ${now.getDate()}., ${days[now.getDay()]}`;
-  };
-
   // Kijelentkezés
   const handleLogout = async () => {
     Alert.alert('Kijelentkezés', 'Biztosan ki szeretnél lépni a fiókodból?', [
@@ -198,8 +164,6 @@ const MenuScreen = ({ navigation }: any) => {
     ]);
   };
 
-  const { greeting, subtext } = getGreeting();
-
   return (
     <View style={styles.screenWrapper}>
       <ScrollView
@@ -208,53 +172,11 @@ const MenuScreen = ({ navigation }: any) => {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
       >
-        {/* header */}
-        <View style={styles.headerContainer}>
-          <TouchableOpacity
-            style={styles.avatarTouchable}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('Profil')}
-          >
-            <Image source={placeholderAvatar} style={styles.avatarImage} />
-            <View style={styles.onlineStatusBadge} />
-          </TouchableOpacity>
-
-          <View style={styles.headerInfo}>
-            <Text style={styles.greetingText}>{greeting}</Text>
-            <Text style={styles.userNameText} numberOfLines={1}>
-              {userName}
-            </Text>
-            <Text style={styles.dateSubtitle}>{getFormattedDate()}</Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.profileActionBtn}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('Profil')}
-          >
-            <Svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
-                stroke={colors.primary}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <Path
-                d="M20.59 22C20.59 18.13 16.74 15 12 15C7.26 15 3.41 18.13 3.41 22"
-                stroke={colors.primary}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-          </TouchableOpacity>
-        </View>
-
-        {/* Köszöntő mottó szalag */}
-        <View style={styles.motivationBanner}>
-          <Text style={styles.motivationText}>✨ {subtext}</Text>
-        </View>
+        {/* 1. FEJLÉC (USER AVATAR, NÉV, KÖSZÖNTŐ ÜZENET) */}
+        <MenuHeader
+          userName={userName}
+          onNavigateProfile={() => navigation.navigate('Profil')}
+        />
 
         {/* daily log modal */}
         {/* ========================================================================= */}
@@ -285,12 +207,12 @@ const MenuScreen = ({ navigation }: any) => {
           onViewAllPlans={() => navigation.navigate('Exercise')}
         />
 
-        <HubNavigationGrid                                                        
-              navigation={navigation}                                                 
-              onLogout={handleLogout}                                                 
-            /> 
+        <HubNavigationGrid
+          navigation={navigation}
+          onLogout={handleLogout}
+        />
 
-        <View style= {{ height: 32  }}/>
+        <View style={{ height: 32 }} />
       </ScrollView>
 
       {/* Quick log meal modal */}
@@ -337,79 +259,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingTop: 16,
     paddingBottom: 24,
-  },
-
-  // 1. FEJLÉC
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  avatarTouchable: {
-    position: 'relative',
-    marginRight: 14,
-  },
-  avatarImage: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    borderWidth: 2.5,
-    borderColor: colors.primary,
-  },
-  onlineStatusBadge: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#10B981',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  headerInfo: {
-    flex: 1,
-  },
-  greetingText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
-    letterSpacing: 0.2,
-  },
-  userNameText: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.neutral[900],
-    marginTop: 1,
-  },
-  dateSubtitle: {
-    fontSize: 12,
-    color: colors.neutral[500],
-    marginTop: 2,
-  },
-  profileActionBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-  },
-
-  motivationBanner: {
-    backgroundColor: '#EFF6FF',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    marginBottom: 20,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
-  },
-  motivationText: {
-    fontSize: 13,
-    color: '#1E40AF',
-    fontWeight: '500',
   },
 });
