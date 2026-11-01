@@ -31,13 +31,14 @@ import {
   checkPedometerAvailability,
   requestPedometerPermission,
 } from '../../services/stepService';
-import { getWaterData, addWaterData } from '../../services/waterService';
+import { getWaterData } from '../../services/waterService';
 import {
   getTodayConsumedCalories,
   DEFAULT_DAILY_CALORIE_GOAL,
 } from '../../services/dietService';
 import { getWorkoutPlans, WorkoutPlan } from '../../services/workoutService';
 import { QuickMealModal } from '../../components/menu/QuickMealModal';
+import { QuickWaterModal } from '../../components/menu/QuickWaterModal';
 
 // Napi folyadék célkitűzés
 const DAILY_WATER_GOAL = 2000; // ml
@@ -62,10 +63,6 @@ const MenuScreen = ({ navigation }: any) => {
   const [mealModalVisible, setMealModalVisible] = useState<boolean>(false);
   const [waterModalVisible, setWaterModalVisible] = useState<boolean>(false);
   const [workoutModalVisible, setWorkoutModalVisible] = useState<boolean>(false);
-
-  // Form állapotok
-  const [waterInput, setWaterInput] = useState<string>('250');
-  const [isSavingWater, setIsSavingWater] = useState<boolean>(false);
 
   // Edzéstervek betöltése
   useEffect(() => {
@@ -185,23 +182,6 @@ const MenuScreen = ({ navigation }: any) => {
       'július', 'augusztus', 'szeptember', 'október', 'november', 'december'
     ];
     return `${now.getFullYear()}. ${months[now.getMonth()]} ${now.getDate()}., ${days[now.getDay()]}`;
-  };
-
-  // Gyors vízbevitel rögzítése
-  const handleAddWaterQuick = async (amount: number) => {
-    try {
-      setIsSavingWater(true);
-      await addWaterData(amount);
-      const waterLogs = await getWaterData();
-      const sumWater = waterLogs.reduce((sum: number, log: any) => sum + (log.amountMl || 0), 0);
-      setTodayWater(sumWater);
-      Alert.alert('Folyadékbevitel 💧', `+${amount} ml sikeresen hozzáadva!`);
-      setWaterModalVisible(false);
-    } catch (error: any) {
-      Alert.alert('Hiba', error.message || 'Nem sikerült hozzáadni a vizet.');
-    } finally {
-      setIsSavingWater(false);
-    }
   };
 
   // Kijelentkezés
@@ -713,103 +693,13 @@ const MenuScreen = ({ navigation }: any) => {
       {/* ========================================================================= */}
       {/* MODAL 2: VÍZBEVITEL RÖGZÍTÉSE (QUICK LOG WATER) */}
       {/* ========================================================================= */}
-      <Modal
+      <QuickWaterModal
         visible={waterModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setWaterModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeaderRow}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ fontSize: 24, marginRight: 8 }}>💧</Text>
-                <Text style={styles.modalTitle}>Vízbevitel rögzítése</Text>
-              </View>
-              <TouchableOpacity onPress={() => setWaterModalVisible(false)} style={styles.closeBtn}>
-                <Text style={styles.closeBtnText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.modalDescription}>
-              Mai eddigi fogyasztásod: <Text style={{ fontWeight: 'bold', color: '#0284C7' }}>{todayWater} ml</Text> a célként kitűzött 2000 ml-ből.
-            </Text>
-
-            <Text style={styles.inputLabel}>Válassz gyors adagot vagy adj meg egyedit:</Text>
-            <View style={styles.waterQuickPresetsGrid}>
-              <TouchableOpacity
-                style={styles.waterPresetBtn}
-                onPress={() => handleAddWaterQuick(250)}
-                disabled={isSavingWater}
-              >
-                <Text style={styles.waterPresetEmoji}>🥛</Text>
-                <Text style={styles.waterPresetText}>+250 ml</Text>
-                <Text style={styles.waterPresetSub}>1 pohár</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.waterPresetBtn}
-                onPress={() => handleAddWaterQuick(500)}
-                disabled={isSavingWater}
-              >
-                <Text style={styles.waterPresetEmoji}>🍶</Text>
-                <Text style={styles.waterPresetText}>+500 ml</Text>
-                <Text style={styles.waterPresetSub}>1 kulacs</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.waterPresetBtn}
-                onPress={() => handleAddWaterQuick(750)}
-                disabled={isSavingWater}
-              >
-                <Text style={styles.waterPresetEmoji}>💧</Text>
-                <Text style={styles.waterPresetText}>+750 ml</Text>
-                <Text style={styles.waterPresetSub}>Nagy palack</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.waterPresetBtn}
-                onPress={() => handleAddWaterQuick(1000)}
-                disabled={isSavingWater}
-              >
-                <Text style={styles.waterPresetEmoji}>🚰</Text>
-                <Text style={styles.waterPresetText}>+1000 ml</Text>
-                <Text style={styles.waterPresetSub}>1 liter</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={[styles.inputLabel, { marginTop: 16 }]}>Egyedi mennyiség (ml):</Text>
-            <View style={styles.customWaterRow}>
-              <TextInput
-                style={[styles.textInput, { flex: 1, marginBottom: 0 }]}
-                placeholder="pl. 330"
-                keyboardType="numeric"
-                value={waterInput}
-                onChangeText={setWaterInput}
-              />
-              <TouchableOpacity
-                style={styles.customWaterAddBtn}
-                onPress={() => {
-                  const amt = parseInt(waterInput, 10);
-                  if (amt > 0) {
-                    handleAddWaterQuick(amt);
-                  }
-                }}
-                disabled={isSavingWater}
-              >
-                <Text style={styles.customWaterAddBtnText}>Hozzáadás</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.cancelModalBtn, { marginTop: 16, width: '100%' }]}
-              onPress={() => setWaterModalVisible(false)}
-            >
-              <Text style={styles.cancelModalBtnText}>Bezárás</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        todayWater={todayWater}
+        dailyGoal={DAILY_WATER_GOAL}
+        onClose={() => setWaterModalVisible(false)}
+        onSuccess={(updatedWater) => setTodayWater(updatedWater)}
+      />
 
       {/* ========================================================================= */}
       {/* MODAL 3: EDZÉS NAPLÓZÁS (QUICK LOG WORKOUT) */}
@@ -1518,59 +1408,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
 
-  mealTypeRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
-  },
-  mealTypeChip: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  mealTypeChipActive: {
-    backgroundColor: '#DCFCE7',
-    borderColor: '#10B981',
-  },
-  mealTypeChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.neutral[700],
-  },
-  mealTypeChipTextActive: {
-    color: '#047857',
-    fontWeight: '700',
-  },
-
-  quickCalPillsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 18,
-  },
-  quickCalPill: {
-    flex: 1,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#F0FDF4',
-    borderWidth: 1,
-    borderColor: '#BBF7D0',
-    alignItems: 'center',
-  },
-  quickCalPillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#15803D',
-  },
-
-  modalActionRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 4,
-  },
   cancelModalBtn: {
     flex: 1,
     paddingVertical: 12,
@@ -1583,76 +1420,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.neutral[700],
-  },
-  submitModalBtn: {
-    flex: 2,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  submitModalBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  modalDietScreenLink: {
-    marginTop: 14,
-    alignItems: 'center',
-  },
-  modalDietScreenLinkText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-
-  // Vízbevitel modal elemek
-  waterQuickPresetsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 8,
-  },
-  waterPresetBtn: {
-    width: '48%',
-    backgroundColor: '#F0F9FF',
-    borderWidth: 1,
-    borderColor: '#BAE6FD',
-    borderRadius: 14,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  waterPresetEmoji: {
-    fontSize: 22,
-    marginBottom: 4,
-  },
-  waterPresetText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#0369A1',
-  },
-  waterPresetSub: {
-    fontSize: 11,
-    color: '#0284C7',
-    marginTop: 2,
-  },
-  customWaterRow: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  customWaterAddBtn: {
-    backgroundColor: '#0284C7',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  customWaterAddBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
   },
 
   // Edzés opció csempék modalban
