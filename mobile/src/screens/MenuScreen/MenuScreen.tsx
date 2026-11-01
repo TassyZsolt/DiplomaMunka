@@ -38,6 +38,7 @@ import { QuickWaterModal } from '../../components/menu/QuickWaterModal';
 import { QuickWorkoutModal } from '../../components/menu/QuickWorkoutModal';
 import { QuickLogBar } from '../../components/menu/QuickLogBar';
 import { DailyFocusCard } from '../../components/menu/DailyFocusCard';
+import { HubNavigationGrid } from '../../components/menu/HubNavigationGrid';
 
 // Napi folyadék célkitűzés
 const DAILY_WATER_GOAL = 2000; // ml
@@ -222,9 +223,7 @@ const MenuScreen = ({ navigation }: any) => {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
       >
-        {/* ========================================================================= */}
-        {/* 1. FEJLÉC (USER AVATAR, NÉV, KÖSZÖNTŐ ÜZENET) */}
-        {/* ========================================================================= */}
+        {/* header */}
         <View style={styles.headerContainer}>
           <TouchableOpacity
             style={styles.avatarTouchable}
@@ -272,9 +271,7 @@ const MenuScreen = ({ navigation }: any) => {
           <Text style={styles.motivationText}>✨ {subtext}</Text>
         </View>
 
-        {/* ========================================================================= */}
-        {/* 2. NAPI AKTIVITÁS ÉS HALADÁS (LÉPÉSEK 10K CÉL, ELFOGYASZTOTT KALÓRIA, VÍZ) */}
-        {/* ========================================================================= */}
+        {/* daily log modal */}
         <View style={styles.sectionHeaderRow}>
           <View>
             <Text style={styles.sectionTitle}>Napi haladás</Text>
@@ -420,127 +417,15 @@ const MenuScreen = ({ navigation }: any) => {
           onViewAllPlans={() => navigation.navigate('Exercise')}
         />
 
-        {/* ========================================================================= */}
-        {/* 5. FŐ MODULOK / GYORS NAVIGÁCIÓ (A KORÁBBI 4 GOMB MODERN MEGVALÓSÍTÁSA) */}
-        {/* ========================================================================= */}
-        <View style={styles.sectionHeaderRow}>
-          <View>
-            <Text style={styles.sectionTitle}>Alkalmazás menü</Text>
-            <Text style={styles.sectionSub}>Főbb funkciók és részletes felületek</Text>
-          </View>
-        </View>
+        <HubNavigationGrid                                                        
+              navigation={navigation}                                                 
+              onLogout={handleLogout}                                                 
+            /> 
 
-        <View style={styles.hubGrid}>
-          {/* 1. Edzéstervek (korábbi 'Edzéstervek' gomb) */}
-          <TouchableOpacity
-            style={styles.hubCard}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('Exercise')}
-          >
-            <View style={[styles.hubIconBg, { backgroundColor: '#EFF6FF' }]}>
-              <Text style={styles.hubEmoji}>🏋️‍♂️</Text>
-            </View>
-            <View style={styles.hubTextCol}>
-              <Text style={styles.hubTitle}>Edzéstervek</Text>
-              <Text style={styles.hubDesc}>Predefiniált tervek & szériák</Text>
-            </View>
-            <Text style={styles.hubArrow}>›</Text>
-          </TouchableOpacity>
-
-          {/* 2. Étrend (korábbi 'Étrend' gomb) */}
-          <TouchableOpacity
-            style={styles.hubCard}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('Diet')}
-          >
-            <View style={[styles.hubIconBg, { backgroundColor: '#F0FDF4' }]}>
-              <Text style={styles.hubEmoji}>🥗</Text>
-            </View>
-            <View style={styles.hubTextCol}>
-              <Text style={styles.hubTitle}>Étrend & Diéta</Text>
-              <Text style={styles.hubDesc}>Étrend típusok & kalóriák</Text>
-            </View>
-            <Text style={styles.hubArrow}>›</Text>
-          </TouchableOpacity>
-
-          {/* 3. Statisztikák (korábbi 'Statisztikák' gomb) */}
-          <TouchableOpacity
-            style={styles.hubCard}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('Stats')}
-          >
-            <View style={[styles.hubIconBg, { backgroundColor: '#FAF5FF' }]}>
-              <Text style={styles.hubEmoji}>📊</Text>
-            </View>
-            <View style={styles.hubTextCol}>
-              <Text style={styles.hubTitle}>Statisztikák</Text>
-              <Text style={styles.hubDesc}>Víz, lépés és volumen grafikonok</Text>
-            </View>
-            <Text style={styles.hubArrow}>›</Text>
-          </TouchableOpacity>
-
-          {/* 4. Profil (korábbi 'Profil' gomb) */}
-          <TouchableOpacity
-            style={styles.hubCard}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('Profil')}
-          >
-            <View style={[styles.hubIconBg, { backgroundColor: '#FFFBEB' }]}>
-              <Text style={styles.hubEmoji}>👤</Text>
-            </View>
-            <View style={styles.hubTextCol}>
-              <Text style={styles.hubTitle}>Profilom</Text>
-              <Text style={styles.hubDesc}>Személyes adatok kezelése</Text>
-            </View>
-            <Text style={styles.hubArrow}>›</Text>
-          </TouchableOpacity>
-
-          {/* 5. Edzés Haladás & PR-ek */}
-          <TouchableOpacity
-            style={styles.hubCard}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('WorkoutProgress')}
-          >
-            <View style={[styles.hubIconBg, { backgroundColor: '#FEF2F2' }]}>
-              <Text style={styles.hubEmoji}>🏆</Text>
-            </View>
-            <View style={styles.hubTextCol}>
-              <Text style={styles.hubTitle}>Haladás & PR-ek</Text>
-              <Text style={styles.hubDesc}>Egyéni csúcsok és súlyrekordok</Text>
-            </View>
-            <Text style={styles.hubArrow}>›</Text>
-          </TouchableOpacity>
-
-          {/* 6. Lépésszámláló részletesen */}
-          <TouchableOpacity
-            style={styles.hubCard}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('StepCounter')}
-          >
-            <View style={[styles.hubIconBg, { backgroundColor: '#F0F9FF' }]}>
-              <Text style={styles.hubEmoji}>👟</Text>
-            </View>
-            <View style={styles.hubTextCol}>
-              <Text style={styles.hubTitle}>Lépésszámláló</Text>
-              <Text style={styles.hubDesc}>Napi célok & kadencia bontás</Text>
-            </View>
-            <Text style={styles.hubArrow}>›</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Kijelentkezés szekció */}
-        <View style={styles.logoutSection}>
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Text style={styles.logoutBtnText}>🚪 Kijelentkezés a fiókból</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ height: 40 }} />
+        <View style= {{ height: 32  }}/>
       </ScrollView>
 
-      {/* ========================================================================= */}
-      {/* MODAL 1: ÉTKEZÉS RÖGZÍTÉSE (QUICK LOG MEAL) */}
-      {/* ========================================================================= */}
+      {/* Quick log meal modal */}
       <QuickMealModal
         visible={mealModalVisible}
         onClose={() => setMealModalVisible(false)}
@@ -551,9 +436,7 @@ const MenuScreen = ({ navigation }: any) => {
         onNavigateDiet={() => navigation.navigate('Diet')}
       />
 
-      {/* ========================================================================= */}
-      {/* MODAL 2: VÍZBEVITEL RÖGZÍTÉSE (QUICK LOG WATER) */}
-      {/* ========================================================================= */}
+      {/* Quick log water modal */}
       <QuickWaterModal
         visible={waterModalVisible}
         todayWater={todayWater}
@@ -562,9 +445,7 @@ const MenuScreen = ({ navigation }: any) => {
         onSuccess={(updatedWater) => setTodayWater(updatedWater)}
       />
 
-      {/* ========================================================================= */}
-      {/* MODAL 3: EDZÉS NAPLÓZÁS (QUICK LOG WORKOUT) */}
-      {/* ========================================================================= */}
+      {/* Quick log workout modal */}
       <QuickWorkoutModal
         visible={workoutModalVisible}
         onClose={() => setWorkoutModalVisible(false)}
@@ -861,73 +742,4 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // 5. FŐ MODULOK / HUB
-  hubGrid: {
-    gap: 10,
-    marginBottom: 20,
-  },
-  hubCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  hubIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  hubEmoji: {
-    fontSize: 22,
-  },
-  hubTextCol: {
-    flex: 1,
-  },
-  hubTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.neutral[900],
-  },
-  hubDesc: {
-    fontSize: 12,
-    color: colors.neutral[500],
-    marginTop: 1,
-  },
-  hubArrow: {
-    fontSize: 20,
-    color: colors.neutral[400],
-    fontWeight: '300',
-    paddingHorizontal: 4,
-  },
-
-  // KIJELENTKEZÉS
-  logoutSection: {
-    marginTop: 4,
-    marginBottom: 10,
-  },
-  logoutBtn: {
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: '#FEE2E2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-  logoutBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#DC2626',
-  },
 });
