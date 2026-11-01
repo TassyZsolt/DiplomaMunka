@@ -36,6 +36,7 @@ import { getWorkoutPlans, WorkoutPlan } from '../../services/workoutService';
 import { QuickMealModal } from '../../components/menu/QuickMealModal';
 import { QuickWaterModal } from '../../components/menu/QuickWaterModal';
 import { QuickWorkoutModal } from '../../components/menu/QuickWorkoutModal';
+import {QuickLogBar} from '../../components/menu/QuickLogBar';
 
 // Napi folyadék célkitűzés
 const DAILY_WATER_GOAL = 2000; // ml
@@ -405,56 +406,11 @@ const MenuScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
 
-        {/* ========================================================================= */}
-        {/* 3. GYORS RÖGZÍTÉS (QUICK LOG) SZEKCIÓ */}
-        {/* ========================================================================= */}
-        <View style={styles.sectionHeaderRow}>
-          <View>
-            <Text style={styles.sectionTitle}>Gyors rögzítés</Text>
-            <Text style={styles.sectionSub}>Azonnali bevitel és naplózás</Text>
-          </View>
-        </View>
-
-        <View style={styles.quickLogGrid}>
-          {/* Étkezés Rögzítése Gomb */}
-          <TouchableOpacity
-            style={[styles.quickLogButton, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}
-            activeOpacity={0.75}
-            onPress={() => setMealModalVisible(true)}
-          >
-            <View style={[styles.quickLogIconContainer, { backgroundColor: '#DCFCE7' }]}>
-              <Text style={styles.quickLogEmoji}>🥗</Text>
-            </View>
-            <Text style={styles.quickLogTitle}>Étkezés</Text>
-            <Text style={styles.quickLogSubtitle}>Kalóriák & ételek</Text>
-          </TouchableOpacity>
-
-          {/* Vízbevitel Gomb */}
-          <TouchableOpacity
-            style={[styles.quickLogButton, { backgroundColor: '#F0F9FF', borderColor: '#BAE6FD' }]}
-            activeOpacity={0.75}
-            onPress={() => setWaterModalVisible(true)}
-          >
-            <View style={[styles.quickLogIconContainer, { backgroundColor: '#E0F2FE' }]}>
-              <Text style={styles.quickLogEmoji}>💧</Text>
-            </View>
-            <Text style={styles.quickLogTitle}>Vízbevitel</Text>
-            <Text style={styles.quickLogSubtitle}>Pohár / kulacs</Text>
-          </TouchableOpacity>
-
-          {/* Edzés Indítás / Rögzítés Gomb */}
-          <TouchableOpacity
-            style={[styles.quickLogButton, { backgroundColor: '#FAF5FF', borderColor: '#E9D5FF' }]}
-            activeOpacity={0.75}
-            onPress={() => setWorkoutModalVisible(true)}
-          >
-            <View style={[styles.quickLogIconContainer, { backgroundColor: '#F3E8FF' }]}>
-              <Text style={styles.quickLogEmoji}>🏋️</Text>
-            </View>
-            <Text style={styles.quickLogTitle}>Edzés</Text>
-            <Text style={styles.quickLogSubtitle}>Terv vagy széria</Text>
-          </TouchableOpacity>
-        </View>
+        <QuickLogBar                                                                                
+              onOpenMealModal={() => setMealModalVisible(true)}                                         
+              onOpenWaterModal={() => setWaterModalVisible(true)}                                       
+              onOpenWorkoutModal={() => setWorkoutModalVisible(true)}                                   
+            /> 
 
         {/* ========================================================================= */}
         {/* 4. MAI FÓKUSZ (PREDEFINED EXERCISES WORKOUT PLANS) */}
@@ -995,50 +951,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.neutral[500],
     fontWeight: '500',
-  },
-
-  // 3. GYORS RÖGZÍTÉS (QUICK LOG) GOMBOK
-  quickLogGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  quickLogButton: {
-    flex: 1,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    marginHorizontal: 4,
-    borderWidth: 1.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  quickLogIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  quickLogEmoji: {
-    fontSize: 22,
-  },
-  quickLogTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.neutral[900],
-    marginBottom: 2,
-  },
-  quickLogSubtitle: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: colors.neutral[500],
-    textAlign: 'center',
   },
 
   // 4. MAI FÓKUSZ (WORKOUT PLANS)
