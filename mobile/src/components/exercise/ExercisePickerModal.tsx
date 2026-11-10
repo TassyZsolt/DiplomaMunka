@@ -15,6 +15,7 @@ import { colors } from '../../themes/tokens';
 interface ExercisePickerModalProps {
     visible: boolean;
     exercises: ExerciseDoc[];
+    alreadySelectedIds?: string[];
     onClose: () => void;
     onSelectExercise: (exercise: ExerciseDoc) => void;
     onDeleteExercise: (exercise: ExerciseDoc) => void;
@@ -24,6 +25,7 @@ interface ExercisePickerModalProps {
 export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
     visible,
     exercises,
+    alreadySelectedIds = [],
     onClose,
     onSelectExercise,
     onDeleteExercise,
@@ -107,6 +109,7 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
                 
                 <ScrollView contentContainerStyle={styles.listContainer}>
                     {filteredExercises.map((ex) => {
+                        const isAlreadySelected = alreadySelectedIds.includes(ex.id);
                         const canDelete = Boolean(
                             ex.isCustom &&
                             ((currentUserId && ex.userId === currentUserId) || (!currentUserId
@@ -114,17 +117,31 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
                         );
 
                         return (
-                            <View key={ex.id} style={styles.exerciseListItem}>
+                            <View
+                                key={ex.id}
+                                style={[
+                                    styles.exerciseListItem,
+                                    isAlreadySelected && { opacity: 0.6, backgroundColor: '#F8FAFC' }
+                                ]}
+                            >
                                 <TouchableOpacity
                                     style={{ flex: 1 }}
                                     onPress={() => onSelectExercise(ex)}
+                                    disabled={isAlreadySelected}
                                     activeOpacity={0.7}
                                 >
                                     <View style={styles.titleRow}>
-                                        <Text style={styles.exListTitle}>{ex.name}</Text>
+                                        <Text style={[styles.exListTitle, isAlreadySelected && { color: '#64748B' }]}>
+                                            {ex.name}
+                                        </Text>
                                         {ex.isCustom && (
                                             <View style={styles.customBadge}>
                                                 <Text style={styles.customBadgeText}>[Saját]</Text>
+                                            </View>
+                                        )}
+                                        {isAlreadySelected && (
+                                            <View style={styles.selectedBadge}>
+                                                <Text style={styles.selectedBadgeText}>Hozzáadva ✓</Text>
                                             </View>
                                         )}
                                     </View>
@@ -166,13 +183,20 @@ export const ExercisePickerModal: React.FC<ExercisePickerModalProps> = ({
                                         </TouchableOpacity>
                                     )}
                                     <TouchableOpacity
-                                        style={styles.selectArrow}
+                                        style={[
+                                            styles.selectArrow,
+                                            isAlreadySelected && { backgroundColor: '#E2E8F0' }
+                                        ]}
                                         onPress={() => onSelectExercise(ex)}
+                                        disabled={isAlreadySelected}
                                     >
                                         <Text style={{
-                                            fontSize: 18, color: colors.primary,
+                                            fontSize: isAlreadySelected ? 13 : 18,
+                                            color: isAlreadySelected ? '#94A3B8' : colors.primary,
                                             fontWeight: '700'
-                                        }}>+</Text>
+                                        }}>
+                                            {isAlreadySelected ? '✓' : '+'}
+                                        </Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -345,5 +369,16 @@ const styles = StyleSheet.create({
         backgroundColor: '#F1F5F9',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    selectedBadge: {
+        backgroundColor: '#DCFCE7',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 6,
+    },
+    selectedBadgeText: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: '#15803D',
     },
 });
