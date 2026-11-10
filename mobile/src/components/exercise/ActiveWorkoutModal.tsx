@@ -134,15 +134,20 @@ import React, { useState, useEffect } from 'react';
           if (updated[exIdx].sets.length > 1) {                                                                             
             updated[exIdx].sets.splice(setIdx, 1);                                                                          
             updated[exIdx].sets.forEach((s, i) => (s.setNumber = i + 1));                                                   
-          }                                                                                                                 
-          return updated;                                                                                                   
-        });                                                                                                                 
-      };                                                                                                                    
-                                                                                                                            
-      const handleAddExerciseFromPicker = (ex: ExerciseDoc) => {                                                            
-        const newEx: WorkoutExercise = {                                                                                    
-          exerciseId: ex.id,                                                                                                
-          name: ex.name,                                                                                                    
+          }
+          return updated;
+        });
+      };
+
+      const handleAddExerciseFromPicker = (ex: ExerciseDoc) => {
+        if (exercises.some((item) => item.exerciseId === ex.id)) {
+          Alert.alert('Ez a gyakorlat már szerepel az edzéstervben.');
+          return;
+        }
+        
+        const newEx: WorkoutExercise = {
+          exerciseId: ex.id,
+          name: ex.name,
           trackingType: ex.trackingType,                                                                                    
           muscleGroup: ex.muscleGroup,                                                                                      
           sets: [                                                                                                           
@@ -354,9 +359,10 @@ import React, { useState, useEffect } from 'react';
           </View>                                                                                                           
                                                                                                                             
                                                                                                
-          <ExercisePickerModal                                                                                              
-            visible={isPickerVisible}                                                                                       
-            exercises={availableExercises}                                                                                  
+          <ExercisePickerModal
+            visible={isPickerVisible}
+            exercises={availableExercises}
+            alreadySelectedIds={exercises.map((e) => e.exerciseId)}                                                                                  
             onClose={() => setIsPickerVisible(false)}                                                                       
             onSelectExercise={handleAddExerciseFromPicker}                                                                  
             onDeleteExercise={onDeleteCustomExercise}                                                                       
