@@ -7,7 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { colors } from '../../themes/tokens';
+import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 import { WorkoutPlan } from '../../services/workoutService';
 import { useExerciseData } from '../../hooks/useExerciseData';
 import { WorkoutPlanCard } from '../../components/exercise/WorkoutPlanCard';
@@ -40,7 +40,7 @@ const ExerciseScreen = () => {
 
   return (
     <View style={styles.container}>
-      
+
       <View style={styles.segmentContainer}>
         <TouchableOpacity
           style={[styles.segmentBtn, activeTab === 'custom' && styles.segmentBtnActive]}
@@ -63,7 +63,7 @@ const ExerciseScreen = () => {
         </TouchableOpacity>
       </View>
 
-      
+
       <ScrollView contentContainerStyle={styles.scrollList} showsVerticalScrollIndicator={false}>
         {activeTab === 'custom' ? (
           <View>
@@ -114,7 +114,7 @@ const ExerciseScreen = () => {
         )}
       </ScrollView>
 
-      
+
       <ActiveWorkoutModal
         visible={activeSessionVisible}
         plan={selectedPlan}
@@ -148,13 +148,13 @@ export default ExerciseScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   segmentContainer: {
     flexDirection: 'row',
-    backgroundColor: '#E2E8F0',
-    borderRadius: 14,
-    marginHorizontal: 16,
+    backgroundColor: colors.border,
+    borderRadius: borderRadius.xl,
+    marginHorizontal: spacing.lg,
     marginTop: 14,
     marginBottom: 10,
     padding: 3,
@@ -162,64 +162,56 @@ const styles = StyleSheet.create({
   segmentBtn: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   segmentBtnActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: colors.surface,
+    ...shadows.sm,
   },
   segmentText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748B',
+    color: colors.textMuted,
   },
   segmentTextActive: {
-    color: colors.neutral[900],
+    color: colors.textPrimary,
     fontWeight: '800',
   },
   scrollList: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 32,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing['3xl'],
   },
   createPlanPrimaryBtn: {
     backgroundColor: colors.primary,
-    borderRadius: 14,
+    borderRadius: borderRadius.xl,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
+    marginBottom: spacing.lg,
+    ...shadows.button,
   },
   createPlanPrimaryBtnText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: 0.3,
   },
   templateHeaderNote: {
     fontSize: 13,
-    color: '#64748B',
-    marginBottom: 12,
+    color: colors.textMuted,
+    marginBottom: spacing.md,
     fontWeight: '500',
   },
   emptyStateCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 18,
     padding: 28,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
     marginTop: 10,
   },
   emptyEmoji: {
@@ -229,12 +221,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#0F172A',
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: '#64748B',
+    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 19,
   },
