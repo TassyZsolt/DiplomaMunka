@@ -35,7 +35,7 @@ import {
   getWeeklyWorkoutStats,
   WeeklyStats,
 } from '../../services/workoutService';
-import { colors } from '../../themes/tokens';
+import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 
 const DAILY_WATER_TARGET = 2000; // ml
 
@@ -204,7 +204,7 @@ const StatScreen = ({ navigation }: any) => {
       >
         <View style={styles.cardHeaderRow}>
           <View style={styles.cardTitleWithIcon}>
-            <View style={[styles.cardIconBox, { backgroundColor: '#EBF3FF' }]}>
+            <View style={[styles.cardIconBox, { backgroundColor: colors.primaryLight }]}>
               <Text style={styles.cardEmoji}>👟</Text>
             </View>
             <View>
@@ -268,7 +268,7 @@ const StatScreen = ({ navigation }: any) => {
       <View style={styles.cardContainer}>
         <View style={styles.cardHeaderRow}>
           <View style={styles.cardTitleWithIcon}>
-            <View style={[styles.cardIconBox, { backgroundColor: '#E0F2FE' }]}>
+            <View style={[styles.cardIconBox, { backgroundColor: colors.slate[100] }]}>
               <Text style={styles.cardEmoji}>💧</Text>
             </View>
             <View>
@@ -297,7 +297,7 @@ const StatScreen = ({ navigation }: any) => {
                 cx={waterSize / 2}
                 cy={waterSize / 2}
                 r={waterRadius}
-                stroke="#0284C7"
+                stroke={colors.sky}
                 strokeWidth={waterStroke}
                 strokeDasharray={waterCircumference}
                 strokeDashoffset={waterOffset}
@@ -342,7 +342,7 @@ const StatScreen = ({ navigation }: any) => {
       >
         <View style={styles.cardHeaderRow}>
           <View style={styles.cardTitleWithIcon}>
-            <View style={[styles.cardIconBox, { backgroundColor: '#E8F8F0' }]}>
+            <View style={[styles.cardIconBox, { backgroundColor: colors.successLight }]}>
               <Text style={styles.cardEmoji}>📊</Text>
             </View>
             <View>
@@ -415,7 +415,7 @@ const StatScreen = ({ navigation }: any) => {
       >
         <View style={styles.cardHeaderRow}>
           <View style={styles.cardTitleWithIcon}>
-            <View style={[styles.cardIconBox, { backgroundColor: '#FEF3C7' }]}>
+            <View style={[styles.cardIconBox, { backgroundColor: colors.slate[100] }]}>
               <Text style={styles.cardEmoji}>🏆</Text>
             </View>
             <View>
@@ -603,7 +603,7 @@ const StatScreen = ({ navigation }: any) => {
                 disabled={isSavingPr}
               >
                 {isSavingPr ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={colors.white} />
                 ) : (
                   <Text style={styles.saveButtonText}>Mentés</Text>
                 )}
@@ -664,13 +664,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 18,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    ...shadows.card,
     borderWidth: 1,
-    borderColor: '#EFEFEF',
+    borderColor: colors.border,
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -768,7 +764,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   waterPercentBadge: {
-    backgroundColor: '#E0F2FE',
+    backgroundColor: colors.slate[100],
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
@@ -776,7 +772,7 @@ const styles = StyleSheet.create({
   waterPercentBadgeText: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#0284C7',
+    color: colors.sky,
   },
   waterContentRow: {
     flexDirection: 'row',
@@ -796,7 +792,7 @@ const styles = StyleSheet.create({
   waterCurrentAmount: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#0284C7',
+    color: colors.sky,
   },
   waterDivider: {
     width: 44,
@@ -814,25 +810,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   waterPill: {
-    backgroundColor: '#0284C7',
+    backgroundColor: colors.sky,
     paddingVertical: 9,
     borderRadius: 18,
     alignItems: 'center',
     marginBottom: 8,
   },
   waterPillText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 12,
     fontWeight: 'bold',
   },
   waterPillCustom: {
     backgroundColor: 'transparent',
     borderWidth: 1.2,
-    borderColor: '#0284C7',
+    borderColor: colors.sky,
     marginBottom: 0,
   },
   waterPillCustomText: {
-    color: '#0284C7',
+    color: colors.sky,
   },
   workoutStatsRow: {
     flexDirection: 'row',
@@ -879,7 +875,7 @@ const styles = StyleSheet.create({
     color: colors.neutral[600],
   },
   dayDotTextDone: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   workoutFooterBar: {
     borderTopWidth: 1,
@@ -903,19 +899,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.slate[900],
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     marginBottom: 10,
   },
   totalPrLabel: {
-    color: '#94A3B8',
+    color: colors.slate[400],
     fontSize: 12,
     fontWeight: '600',
   },
   totalPrWeight: {
-    color: '#38BDF8',
+    color: colors.sky,
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -926,9 +922,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 10,
-    padding: 10,
     marginBottom: 6,
     borderWidth: 1,
     borderColor: colors.neutral[200],
@@ -959,7 +954,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    backgroundColor: '#EEF2F6',
+    backgroundColor: colors.borderLight,
     marginTop: 2,
   },
   prQuickEditBtnText: {
@@ -975,21 +970,17 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
     width: '90%',
-    backgroundColor: 'white',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 5,
+    ...shadows.modal,
   },
   modalTitle: {
     fontSize: 18,
@@ -1030,7 +1021,7 @@ const styles = StyleSheet.create({
     color: colors.neutral[700],
   },
   tabChipTextActive: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   input: {
     width: '100%',
@@ -1070,7 +1061,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   saveButtonText: {
-    color: 'white',
+    color: colors.white,
     fontWeight: '600',
     fontSize: 15,
   },

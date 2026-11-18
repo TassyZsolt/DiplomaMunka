@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { colors } from '../../themes/tokens';
+import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 import {
   WorkoutSession,
   WeeklyStats,
@@ -339,12 +339,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#EBF3FF',
+    backgroundColor: colors.primaryLight,
     padding: 14,
     borderRadius: 14,
     marginBottom: 18,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: colors.primaryBorder,
   },
   startBannerLeft: {
     flexDirection: 'row',
@@ -398,13 +398,13 @@ const styles = StyleSheet.create({
     color: colors.neutral[600],
   },
   segmentBtnTextActive: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   tabContent: {
     width: '100%',
   },
   summaryCard: {
-    backgroundColor: '#1E293B',
+    backgroundColor: colors.slate[800],
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -417,29 +417,29 @@ const styles = StyleSheet.create({
   summaryCardTitle: {
     fontSize: 11,
     letterSpacing: 1.1,
-    color: '#94A3B8',
+    color: colors.slate[400],
     fontWeight: '700',
   },
   summaryCardHighlight: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: colors.white,
     marginTop: 4,
   },
   percentBadge: {
-    backgroundColor: '#334155',
+    backgroundColor: colors.slate[700],
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
   },
   percentBadgeText: {
-    color: '#38BDF8',
+    color: colors.sky,
     fontSize: 14,
     fontWeight: 'bold',
   },
   progressBarBg: {
     height: 8,
-    backgroundColor: '#334155',
+    backgroundColor: colors.slate[700],
     borderRadius: 4,
     marginVertical: 16,
     overflow: 'hidden',
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
   },
   dayBox: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.slate[900],
     borderRadius: 10,
     paddingVertical: 8,
     alignItems: 'center',
@@ -463,28 +463,28 @@ const styles = StyleSheet.create({
   },
   dayBoxToday: {
     borderWidth: 1.5,
-    borderColor: '#38BDF8',
+    borderColor: colors.sky,
   },
   dayBoxCompleted: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: colors.primaryDark,
   },
   dayTextName: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: colors.slate[400],
     fontWeight: '500',
   },
   dayTextNumber: {
     fontSize: 13,
-    color: '#FFFFFF',
+    color: colors.white,
     fontWeight: 'bold',
     marginTop: 2,
   },
   dayTextToday: {
-    color: '#38BDF8',
+    color: colors.sky,
   },
   dayStatusIcon: {
     fontSize: 11,
-    color: '#38BDF8',
+    color: colors.sky,
     marginTop: 4,
   },
   statsRow: {
@@ -612,22 +612,22 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   recommendationCard: {
-    backgroundColor: '#F0FDF4',
+    backgroundColor: colors.successLight,
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#BBF7D0',
+    borderColor: colors.success,
     marginBottom: 20,
   },
   recommendationTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#15803D',
+    color: colors.successText,
     marginBottom: 4,
   },
   recommendationText: {
     fontSize: 12,
-    color: '#166534',
+    color: colors.successDark,
     lineHeight: 18,
   },
   logCard: {
