@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { registerUser } from '../../services/authService';
-import { colors } from '../../themes/tokens';
+import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 
 const RegisterScreen = ({ navigation }: any) => {
   const [lastName, setLastName] = useState('');
@@ -140,7 +140,7 @@ const RegisterScreen = ({ navigation }: any) => {
           automaticallyAdjustKeyboardInsets={true}
         >
 
-          
+
           <View style={styles.topBar}>
             <TouchableOpacity
               style={styles.backButton}
@@ -150,7 +150,7 @@ const RegisterScreen = ({ navigation }: any) => {
               <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <Path
                   d="M19 12H5M12 19l-7-7 7-7"
-                  stroke="#334155"
+                  stroke={colors.textSecondary}
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -160,7 +160,7 @@ const RegisterScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          
+
           <View style={styles.headerContainer}>
             <View style={styles.logoBadge}>
               <Text style={styles.logoEmoji}>🏃</Text>
@@ -173,9 +173,9 @@ const RegisterScreen = ({ navigation }: any) => {
           </View>
 
 
-          
+
           <View style={styles.formContainer}>
-            
+
             <View style={styles.namesRow}>
               <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
                 <Text style={styles.inputLabel}>Vezetéknév</Text>
@@ -183,7 +183,7 @@ const RegisterScreen = ({ navigation }: any) => {
                   <TextInput
                     style={styles.textInput}
                     placeholder="pl. Kovács"
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor={colors.textLight}
                     value={lastName}
                     onChangeText={setLastName}
                     onFocus={() => scrollToInput(0)}
@@ -198,7 +198,7 @@ const RegisterScreen = ({ navigation }: any) => {
                   <TextInput
                     style={styles.textInput}
                     placeholder="pl. Péter"
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor={colors.textLight}
                     value={firstName}
                     onChangeText={setFirstName}
                     onFocus={() => scrollToInput(0)}
@@ -208,7 +208,7 @@ const RegisterScreen = ({ navigation }: any) => {
               </View>
             </View>
 
-            
+
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>E-mail cím</Text>
               <View style={styles.inputWrapper}>
@@ -216,14 +216,14 @@ const RegisterScreen = ({ navigation }: any) => {
                   <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <Path
                       d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-                      stroke="#64748B"
+                      stroke={colors.textMuted}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                     <Path
                       d="M22 6l-10 7L2 6"
-                      stroke="#64748B"
+                      stroke={colors.textMuted}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -233,7 +233,7 @@ const RegisterScreen = ({ navigation }: any) => {
                 <TextInput
                   style={styles.textInput}
                   placeholder="pelda@email.com"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.textLight}
                   value={email}
                   onChangeText={setEmail}
                   onFocus={() => scrollToInput(90)}
@@ -244,7 +244,7 @@ const RegisterScreen = ({ navigation }: any) => {
               </View>
             </View>
 
-            
+
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Jelszó</Text>
               <View style={styles.inputWrapper}>
@@ -257,14 +257,14 @@ const RegisterScreen = ({ navigation }: any) => {
                       height="11"
                       rx="2"
                       ry="2"
-                      stroke="#64748B"
+                      stroke={colors.textMuted}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                     <Path
                       d="M7 11V7a5 5 0 0 1 10 0v4"
-                      stroke="#64748B"
+                      stroke={colors.textMuted}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -274,7 +274,7 @@ const RegisterScreen = ({ navigation }: any) => {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Legalább 6 karakter"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.textLight}
                   value={password}
                   onChangeText={setPassword}
                   onFocus={() => scrollToInput(180)}
@@ -290,14 +290,14 @@ const RegisterScreen = ({ navigation }: any) => {
                     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                       <Path
                         d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                        stroke="#64748B"
+                        stroke={colors.textMuted}
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                       <Path
                         d="M1 1l22 22"
-                        stroke="#64748B"
+                        stroke={colors.textMuted}
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -307,7 +307,7 @@ const RegisterScreen = ({ navigation }: any) => {
                     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                       <Path
                         d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                        stroke="#64748B"
+                        stroke={colors.textMuted}
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -316,7 +316,7 @@ const RegisterScreen = ({ navigation }: any) => {
                         cx="12"
                         cy="12"
                         r="3"
-                        stroke="#64748B"
+                        stroke={colors.textMuted}
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -327,7 +327,7 @@ const RegisterScreen = ({ navigation }: any) => {
               </View>
             </View>
 
-            
+
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Jelszó megerősítése</Text>
               <View style={styles.inputWrapper}>
@@ -340,14 +340,14 @@ const RegisterScreen = ({ navigation }: any) => {
                       height="11"
                       rx="2"
                       ry="2"
-                      stroke="#64748B"
+                      stroke={colors.textMuted}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                     <Path
                       d="M7 11V7a5 5 0 0 1 10 0v4"
-                      stroke="#64748B"
+                      stroke={colors.textMuted}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -357,7 +357,7 @@ const RegisterScreen = ({ navigation }: any) => {
                 <TextInput
                   style={styles.textInput}
                   placeholder="Jelszó ismétlése"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.textLight}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   onFocus={() => scrollToInput(270)}
@@ -373,14 +373,14 @@ const RegisterScreen = ({ navigation }: any) => {
                     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                       <Path
                         d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                        stroke="#64748B"
+                        stroke={colors.textMuted}
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                       <Path
                         d="M1 1l22 22"
-                        stroke="#64748B"
+                        stroke={colors.textMuted}
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -390,7 +390,7 @@ const RegisterScreen = ({ navigation }: any) => {
                     <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                       <Path
                         d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                        stroke="#64748B"
+                        stroke={colors.textMuted}
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -399,7 +399,7 @@ const RegisterScreen = ({ navigation }: any) => {
                         cx="12"
                         cy="12"
                         r="3"
-                        stroke="#64748B"
+                        stroke={colors.textMuted}
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -410,7 +410,7 @@ const RegisterScreen = ({ navigation }: any) => {
               </View>
             </View>
 
-            
+
             <TouchableOpacity
               style={[styles.registerButton, loading && styles.registerButtonDisabled]}
               onPress={handleRegister}
@@ -418,7 +418,7 @@ const RegisterScreen = ({ navigation }: any) => {
               activeOpacity={0.85}
             >
               {loading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color={colors.white} size="small" />
               ) : (
                 <Text style={styles.registerButtonText}>Fiók létrehozása</Text>
               )}
@@ -432,9 +432,9 @@ const RegisterScreen = ({ navigation }: any) => {
             <View style={styles.dividerLine} />
           </View>
 
-          
+
           <View style={styles.socialButtonsContainer}>
-            
+
             <TouchableOpacity
               style={styles.googleButton}
               onPress={() => handleSocialRegister('Google')}
@@ -461,20 +461,20 @@ const RegisterScreen = ({ navigation }: any) => {
               <Text style={styles.googleButtonText}>Folytatás Google-fiókkal</Text>
             </TouchableOpacity>
 
-            
+
             <TouchableOpacity
               style={styles.appleButton}
               onPress={() => handleSocialRegister('Apple')}
               activeOpacity={0.8}
             >
-              <Svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF">
+              <Svg width="20" height="20" viewBox="0 0 24 24" fill={colors.white}>
                 <Path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.85c.67-.82 1.13-1.96 1.01-3.1-.98.04-2.16.66-2.86 1.48-.61.71-1.15 1.87-1.01 2.99 1.1.08 2.2-.55 2.86-1.37z" />
               </Svg>
               <Text style={styles.appleButtonText}>Folytatás Apple-fiókkal</Text>
             </TouchableOpacity>
           </View>
 
-          
+
           <View style={styles.footerRow}>
             <Text style={styles.footerPromptText}>Már van fiókod?</Text>
             <TouchableOpacity
@@ -496,53 +496,53 @@ export default RegisterScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.md,
     paddingBottom: 36,
     flexGrow: 1,
   },
 
-    topBar: {
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.pill,
+    backgroundColor: colors.borderLight,
     alignSelf: 'flex-start',
   },
   backButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#334155',
+    color: colors.textSecondary,
     marginLeft: 6,
   },
 
   headerContainer: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: spacing.xxl,
   },
   logoBadge: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
     borderWidth: 2,
-    borderColor: '#DBEAFE',
+    borderColor: colors.primaryBorderLight,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -558,25 +558,25 @@ const styles = StyleSheet.create({
     color: colors.primary,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   welcomeTitle: {
     fontSize: 26,
     fontWeight: '900',
-    color: '#0F172A',
+    color: colors.textPrimary,
     marginBottom: 6,
     textAlign: 'center',
   },
   welcomeSubtitle: {
     fontSize: 14,
-    color: '#64748B',
+    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 20,
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
   },
 
-    formContainer: {
-    marginBottom: 20,
+  formContainer: {
+    marginBottom: spacing.xl,
   },
   namesRow: {
     flexDirection: 'row',
@@ -588,17 +588,17 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#334155',
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 14,
-    paddingHorizontal: 12,
+    borderColor: colors.border,
+    borderRadius: borderRadius.xl,
+    paddingHorizontal: spacing.md,
     height: 50,
   },
   inputIconContainer: {
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 15,
-    color: '#0F172A',
+    color: colors.textPrimary,
     height: '100%',
   },
   eyeToggleButton: {
@@ -616,22 +616,18 @@ const styles = StyleSheet.create({
 
   registerButton: {
     backgroundColor: colors.primary,
-    borderRadius: 14,
+    borderRadius: borderRadius.xl,
     height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: spacing.sm,
+    ...shadows.button,
   },
   registerButtonDisabled: {
     opacity: 0.7,
   },
   registerButtonText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.3,
@@ -645,38 +641,34 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.border,
   },
   dividerText: {
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     fontSize: 12,
     fontWeight: '600',
-    color: '#94A3B8',
+    color: colors.textLight,
   },
 
   socialButtonsContainer: {
-    gap: 12,
-    marginBottom: 24,
+    gap: spacing.md,
+    marginBottom: spacing.xxl,
   },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     height: 50,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    borderColor: colors.border,
+    ...shadows.sm,
   },
   googleButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.slate[800],
     marginLeft: 10,
   },
   appleButton: {
@@ -684,9 +676,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 50,
-    borderRadius: 14,
-    backgroundColor: '#000000',
-    shadowColor: '#000',
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.black,
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -695,7 +687,7 @@ const styles = StyleSheet.create({
   appleButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.white,
     marginLeft: 10,
   },
 
@@ -708,7 +700,7 @@ const styles = StyleSheet.create({
   },
   footerPromptText: {
     fontSize: 14,
-    color: '#64748B',
+    color: colors.textMuted,
   },
   loginLinkText: {
     fontSize: 14,

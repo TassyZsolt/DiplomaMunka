@@ -58,6 +58,9 @@ export const colors = {
     // Borders
     border: "#E2E8F0",
     borderLight: "#F1F5F9",
+
+    // Overlays
+    overlay: "rgba(15, 23, 42, 0.5)",
 };
 
 export const spacing = {
@@ -103,5 +106,12 @@ export const shadows = {
         shadowOpacity: 0.25,
         shadowRadius: 6,
         elevation: 3,
+    },
+    modal: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+        elevation: 10,
     },
 };
