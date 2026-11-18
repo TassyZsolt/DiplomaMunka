@@ -14,6 +14,9 @@ export const colors = {
     warning: "#F59E0B",
     danger: "#EF4444",
 
+    // Accent
+    sky: "#38BDF8",
+
     // Slate palette commonly used in screens
     slate: {
         50: "#F8FAFC",
