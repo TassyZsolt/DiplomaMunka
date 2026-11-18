@@ -8,6 +8,9 @@ export const colors = {
 
     // Status
     success: "#10B981",
+    successDark: "#059669",
+    successLight: "#DCFCE7",
+    successText: "#15803D",
     warning: "#F59E0B",
     danger: "#EF4444",
 
