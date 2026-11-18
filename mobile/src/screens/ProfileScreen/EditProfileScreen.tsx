@@ -13,7 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { updateUserProfile } from '../../services/userService';
-import { colors } from '../../themes/tokens';
+import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 import placeholderAvatar from '../../../assets/images/placeholderAvatar.jpg';
 
 const FITNESS_GOALS = [
@@ -107,7 +107,7 @@ const EditProfileScreen = ({ route, navigation }: any) => {
           <TextInput
             style={styles.textInput}
             placeholder="pl. Kovács"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textLight}
             value={lastName}
             onChangeText={setLastName}
           />
@@ -116,7 +116,7 @@ const EditProfileScreen = ({ route, navigation }: any) => {
           <TextInput
             style={styles.textInput}
             placeholder="pl. János"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textLight}
             value={firstName}
             onChangeText={setFirstName}
           />
@@ -133,7 +133,7 @@ const EditProfileScreen = ({ route, navigation }: any) => {
               <TextInput
                 style={styles.textInput}
                 placeholder="pl. 78"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textLight}
                 value={weight}
                 onChangeText={setWeight}
                 keyboardType="numeric"
@@ -145,7 +145,7 @@ const EditProfileScreen = ({ route, navigation }: any) => {
               <TextInput
                 style={styles.textInput}
                 placeholder="pl. 182"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textLight}
                 value={height}
                 onChangeText={setHeight}
                 keyboardType="numeric"
@@ -186,7 +186,7 @@ const EditProfileScreen = ({ route, navigation }: any) => {
           activeOpacity={0.8}
         >
           {isSaving ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
+            <ActivityIndicator color={colors.white} size="small" />
           ) : (
             <Text style={styles.saveBtnText}>Módosítások Mentése 💾</Text>
           )}
@@ -212,7 +212,7 @@ export default EditProfileScreen;
 const styles = StyleSheet.create({
   screenWrapper: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   // Avatar
   avatarContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
     marginTop: 10,
   },
   avatarImage: {
@@ -235,70 +235,66 @@ const styles = StyleSheet.create({
   },
   avatarSubNote: {
     fontSize: 12,
-    color: '#64748B',
-    marginTop: 8,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
     fontWeight: '500',
   },
   // Kártyák
   cardSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.card,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    borderColor: colors.border,
+    ...shadows.sm,
   },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 4,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   sectionSub: {
     fontSize: 12,
-    color: '#64748B',
+    color: colors.textMuted,
     marginBottom: 14,
   },
   inputLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#334155',
+    color: colors.textSecondary,
     marginBottom: 6,
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   textInput: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#0F172A',
+    color: colors.textPrimary,
   },
   rowInputs: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
   },
   // Célválasztó
   goalPillsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: spacing.sm,
     marginTop: 6,
   },
   goalPill: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.borderLight,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   goalPillActive: {
     backgroundColor: colors.primary,
@@ -307,37 +303,33 @@ const styles = StyleSheet.create({
   goalPillText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#475569',
+    color: colors.slate[600],
   },
   goalPillTextActive: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   // Gombok
   saveBtn: {
     backgroundColor: colors.primary,
-    borderRadius: 14,
+    borderRadius: borderRadius.xl,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 6,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 3,
+    ...shadows.button,
   },
   saveBtnText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 15,
     fontWeight: '800',
   },
   cancelBtn: {
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   cancelBtnText: {
-    color: '#64748B',
+    color: colors.textMuted,
     fontSize: 14,
     fontWeight: '600',
   },

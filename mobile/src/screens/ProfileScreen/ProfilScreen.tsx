@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useProfileData } from '../../hooks/useProfileData';
-import { colors } from '../../themes/tokens';
+import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 import placeholderAvatar from '../../../assets/images/placeholderAvatar.jpg';
 
 export const ProfilScreen = ({ navigation }: any) => {
@@ -182,9 +182,9 @@ export const ProfilScreen = ({ navigation }: any) => {
         >
           <View style={styles.actionBtnLeft}>
             <Text style={styles.actionIcon}>🚪</Text>
-            <Text style={[styles.actionBtnText, { color: '#EF4444' }]}>Kijelentkezés a fiókból</Text>
+            <Text style={[styles.actionBtnText, { color: colors.danger }]}>Kijelentkezés a fiókból</Text>
           </View>
-          <Text style={[styles.actionArrow, { color: '#EF4444' }]}>›</Text>
+          <Text style={[styles.actionArrow, { color: colors.danger }]}>›</Text>
         </TouchableOpacity>
       </View>
 
@@ -198,37 +198,33 @@ export default ProfilScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   scrollContent: {
-    padding: 16,
+    padding: spacing.lg,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   loadingText: {
-    marginTop: 12,
+    marginTop: spacing.md,
     fontSize: 14,
-    color: '#64748B',
+    color: colors.textMuted,
     fontWeight: '600',
   },
   // Fejléc Kártya
   headerCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.header,
     padding: 22,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: colors.border,
+    ...shadows.card,
   },
   avatarWrapper: {
     position: 'relative',
@@ -247,41 +243,41 @@ const styles = StyleSheet.create({
     right: 4,
     width: 16,
     height: 16,
-    borderRadius: 8,
-    backgroundColor: '#10B981',
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.success,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: colors.white,
   },
   userNameText: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 4,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   userEmailText: {
     fontSize: 13,
-    color: '#64748B',
+    color: colors.textMuted,
     marginBottom: 10,
   },
   memberTag: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 16,
+    backgroundColor: colors.borderLight,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.pill,
+    marginBottom: spacing.lg,
   },
   memberTagText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#475569',
+    color: colors.slate[600],
   },
   editProfileBtn: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.primaryLight,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: colors.primaryBorder,
     paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.lg,
     width: '100%',
     alignItems: 'center',
   },
@@ -292,33 +288,33 @@ const styles = StyleSheet.create({
   },
   // Cél Kártya
   goalCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.card,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   cardHeaderRow: {
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   cardHeaderTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 12,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
   },
   goalBadgeRow: {
-    gap: 8,
+    gap: spacing.sm,
   },
   goalBadge: {
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 12,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
-    borderRadius: 10,
+    borderRadius: borderRadius.md,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: colors.primaryBorderLight,
   },
   goalBadgeText: {
     fontSize: 13,
@@ -327,52 +323,52 @@ const styles = StyleSheet.create({
   },
   goalDescription: {
     fontSize: 12,
-    color: '#64748B',
+    color: colors.textMuted,
     lineHeight: 18,
   },
   // Mutatók Kártya
   metricsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.card,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   metricsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: spacing.sm,
   },
   metricItem: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 14,
-    padding: 12,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.xl,
+    padding: spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: colors.borderLight,
   },
   metricLabel: {
     fontSize: 11,
-    color: '#64748B',
+    color: colors.textMuted,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   metricValue: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 4,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   metricSub: {
     fontSize: 10,
-    color: '#94A3B8',
+    color: colors.textLight,
   },
   bmiPill: {
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: borderRadius.xs,
     marginTop: 2,
   },
   bmiPillText: {
@@ -381,60 +377,60 @@ const styles = StyleSheet.create({
   },
   // Aktivitás Kártya
   activityCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.card,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   activityRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
   },
   activityBox: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 14,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.xl,
     padding: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: colors.borderLight,
   },
   activityEmoji: {
     fontSize: 22,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   activityNumber: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#0F172A',
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   activityLabel: {
     fontSize: 11,
-    color: '#64748B',
+    color: colors.textMuted,
     fontWeight: '600',
     textAlign: 'center',
   },
   // Műveletek Kártya
   actionsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.card,
+    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   actionRowBtn: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
   },
   actionBtnLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.md,
   },
   actionIcon: {
     fontSize: 18,
@@ -442,16 +438,16 @@ const styles = StyleSheet.create({
   actionBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#334155',
+    color: colors.textSecondary,
   },
   actionArrow: {
     fontSize: 18,
-    color: '#94A3B8',
+    color: colors.textLight,
     fontWeight: '600',
   },
   actionDivider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
-    marginVertical: 4,
+    backgroundColor: colors.borderLight,
+    marginVertical: spacing.xs,
   },
 });
