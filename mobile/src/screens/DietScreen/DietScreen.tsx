@@ -76,13 +76,11 @@ const DietScreen = ({ navigation }: any) => {
 
   const handleSelectDiet = (typeId: string) => {
     setSelectedDiet(typeId);
-    const target = DIET_TYPES.find((d) => d.id === typeId);
-    Alert.alert('Étrend kiválasztva', `Aktív étrend: ${target?.title || typeId}`);
   };
 
   const handleAddMeal = async () => {
     const cals = parseInt(mealCalories, 10);
-    if (isNaN(cals) || cals <= 0) {
+    if (isNaN(cals) || cals <= 0 || cals > 3500) {
       Alert.alert('Hiba', 'Kérlek adj meg érvényes kalóriaértéket!');
       return;
     }
