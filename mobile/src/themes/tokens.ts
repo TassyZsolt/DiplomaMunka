@@ -13,6 +13,7 @@ export const colors = {
     successText: "#15803D",
     warning: "#F59E0B",
     danger: "#EF4444",
+    dangerLight: "#FEE2E2",
 
     // Accent
     sky: "#38BDF8",

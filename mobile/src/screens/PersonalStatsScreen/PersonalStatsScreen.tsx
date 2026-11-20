@@ -24,6 +24,8 @@ import {
   getPersonalRecords,
   savePersonalRecord,
   calculateTotalPr,
+  calculateEpley1Rm,
+  calculate1RmPercentages,
 } from '../../services/prService';
 import { getWaterData } from '../../services/waterService';
 
@@ -147,10 +149,17 @@ const PersonalStatsScreen = ({ navigation }: any) => {
     return max;
   }, null);
 
+  const prList = Object.values(records).filter((r) => r.weight > 0);
+  const avgPrWeight =
+    prList.length > 0
+      ? Math.round(prList.reduce((sum, r) => sum + r.weight, 0) / prList.length)
+      : 0;
+
   // 1RM Számítás (Epley formula: Súly * (1 + Ismétlés / 30))
   const cW = parseFloat(calcWeight) || 0;
   const cR = parseInt(calcReps, 10) || 1;
-  const estimated1RM = cR === 1 ? cW : Math.round(cW * (1 + cR / 30));
+  const estimated1RM = calculateEpley1Rm(cW, cR);
+  const oneRmPercentages = calculate1RmPercentages(estimated1RM);
 
   const filteredExercises = selectedCategory === 'Összes'
     ? exercises
@@ -238,7 +247,7 @@ const PersonalStatsScreen = ({ navigation }: any) => {
               <View style={styles.quickStatCol}>
                 <Text style={styles.quickStatLabel}>Átlagos súly</Text>
                 <Text style={styles.quickStatValue}>
-                
+                  {avgPrWeight > 0 ? `${avgPrWeight} kg` : '-'}
                 </Text>
                 <Text style={styles.quickStatExercise}>Gyakorlatonként</Text>
               </View>
@@ -287,6 +296,13 @@ const PersonalStatsScreen = ({ navigation }: any) => {
                         <View style={styles.categoryTag}>
                           <Text style={styles.categoryTagText}>{exercise.category}</Text>
                         </View>
+                        {hasRecord && (
+                          <View style={styles.oneRmTag}>
+                            <Text style={styles.oneRmTagText}>
+                              1RM: {pr.estimated1Rm || calculateEpley1Rm(pr.weight, pr.reps)} kg
+                            </Text>
+                          </View>
+                        )}
                         {hasRecord && (
                           <Text style={styles.recordDateText}>📅 {pr.date}</Text>
                         )}
@@ -360,28 +376,16 @@ const PersonalStatsScreen = ({ navigation }: any) => {
             </View>
 
             
-            <Text style={styles.tableHeader}>Edzési intenzitási zónák (1RM arányában):</Text>
+            <Text style={styles.tableHeader}>Edzési intenzitási zónák (Epley 1RM arányában):</Text>
             <View style={styles.tableGrid}>
-              <View style={styles.tableRow}>
-                <Text style={styles.tablePercent}>95% (2 ism.)</Text>
-                <Text style={styles.tableWeight}>{Math.round(estimated1RM * 0.95)} kg</Text>
-              </View>
-              <View style={styles.tableRow}>
-                <Text style={styles.tablePercent}>90% (4 ism.)</Text>
-                <Text style={styles.tableWeight}>{Math.round(estimated1RM * 0.90)} kg</Text>
-              </View>
-              <View style={styles.tableRow}>
-                <Text style={styles.tablePercent}>85% (6 ism.)</Text>
-                <Text style={styles.tableWeight}>{Math.round(estimated1RM * 0.85)} kg</Text>
-              </View>
-              <View style={styles.tableRow}>
-                <Text style={styles.tablePercent}>80% (8 ism.)</Text>
-                <Text style={styles.tableWeight}>{Math.round(estimated1RM * 0.80)} kg</Text>
-              </View>
-              <View style={styles.tableRow}>
-                <Text style={styles.tablePercent}>75% (10 ism.)</Text>
-                <Text style={styles.tableWeight}>{Math.round(estimated1RM * 0.75)} kg</Text>
-              </View>
+              {oneRmPercentages.map((item) => (
+                <View key={item.percent} style={styles.tableRow}>
+                  <Text style={styles.tablePercent}>
+                    {item.percent}% ({item.estimatedReps} ism.)
+                  </Text>
+                  <Text style={styles.tableWeight}>{item.weight} kg</Text>
+                </View>
+              ))}
             </View>
           </View>
         </View>
@@ -800,6 +804,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.slate[700],
     fontWeight: '500',
+  },
+  oneRmTag: {
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+    marginRight: 8,
+  },
+  oneRmTagText: {
+    fontSize: 11,
+    color: colors.primary,
+    fontWeight: '700',
   },
   recordDateText: {
     fontSize: 11,

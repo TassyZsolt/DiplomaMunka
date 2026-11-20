@@ -15,6 +15,7 @@ import {
   getTodayMeals,
   getTodayConsumedCalories,
   addMealData,
+  deleteMealData,
   DEFAULT_DAILY_CALORIE_GOAL,
   calculateBiometrics,
   MealEntry,
@@ -102,6 +103,29 @@ const DietScreen = ({ navigation }: any) => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleDeleteMeal = (meal: MealEntry) => {
+    Alert.alert(
+      'Étkezés törlése',
+      `Biztosan törölni szeretnéd a(z) "${meal.name}" tételt (${meal.calories} kcal)?`,
+      [
+        { text: 'Mégse', style: 'cancel' },
+        {
+          text: 'Törlés',
+          style: 'destructive',
+          onPress: async () => {
+            if (!meal.id) return;
+            try {
+              await deleteMealData(meal.id);
+              await loadDietData();
+            } catch (e: any) {
+              Alert.alert('Hiba', e.message || 'Nem sikerült törölni az étkezést.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   // biometrikus számítás
@@ -244,7 +268,17 @@ const DietScreen = ({ navigation }: any) => {
                 <Text style={styles.mealItemName}>{meal.name}</Text>
                 <Text style={styles.mealItemType}>{meal.mealType || 'Étkezés'}</Text>
               </View>
-              <Text style={styles.mealItemCalories}>+{meal.calories} kcal</Text>
+              <View style={styles.mealItemRight}>
+                <Text style={styles.mealItemCalories}>+{meal.calories} kcal</Text>
+                <TouchableOpacity
+                  style={styles.deleteMealBtn}
+                  onPress={() => handleDeleteMeal(meal)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.deleteMealIcon}>🗑️</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
         </View>
@@ -526,5 +560,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     color: colors.success,
+  },
+  mealItemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  deleteMealBtn: {
+    padding: 6,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.dangerLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteMealIcon: {
+    fontSize: 13,
   },
 });
