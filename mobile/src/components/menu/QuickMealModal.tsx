@@ -34,7 +34,7 @@ export const QuickMealModal: React.FC<QuickMealModalProps> = ({
 
   const handleSaveMeal = async () => {
     const cals = parseInt(mealCalories, 10);
-    if (isNaN(cals) || cals <= 0) {
+    if (isNaN(cals) || cals <= 0 || cals > 3500) {
       Alert.alert('Figyelem', 'Kérlek adj meg érvényes kalóriamennyiséget (pl. 450 kcal)!');
       return;
     }

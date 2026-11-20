@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { updateUserProfile } from '../../services/userService';
+import { getUserProfile, updateUserProfile } from '../../services/userService';
 import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 import placeholderAvatar from '../../../assets/images/placeholderAvatar.jpg';
 
@@ -35,6 +35,26 @@ const EditProfileScreen = ({ route, navigation }: any) => {
   const [gender, setGender] = useState<string>(userData.gender || 'Férfi');
   const [fitnessGoal, setFitnessGoal] = useState<string>(userData.fitnessGoal || 'Izomtömeg-növelés');
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [loadingProfile, setLoadingProfile] = useState<boolean>(!route?.params?.userData);
+
+  useEffect(() => {
+    if (!route?.params?.userData) {
+      getUserProfile()
+        .then((profile) => {
+          if (profile) {
+            setLastName(profile.lastName || '');
+            setFirstName(profile.firstName || '');
+            if (profile.weight) setWeight(String(profile.weight));
+            if (profile.height) setHeight(String(profile.height));
+            if (profile.age) setAge(String(profile.age));
+            if (profile.gender) setGender(profile.gender);
+            if (profile.fitnessGoal) setFitnessGoal(profile.fitnessGoal);
+          }
+        })
+        .catch((err) => console.warn('Nem sikerült betölteni a profilt:', err))
+        .finally(() => setLoadingProfile(false));
+    }
+  }, []);
 
   const handleSave = async () => {
     // 1. Név érvényesítés
@@ -96,6 +116,14 @@ const EditProfileScreen = ({ route, navigation }: any) => {
       setIsSaving(false);
     }
   };
+
+  if (loadingProfile) {
+    return (
+      <View style={[styles.screenWrapper, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView

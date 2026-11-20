@@ -226,7 +226,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
         </View>
 
 
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 16 }}>
           {exercises.map((ex, exIdx) => (
             <View key={exIdx} style={styles.exerciseCard}>
               <View style={styles.exCardHeader}>
@@ -236,19 +236,19 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
 
 
               <View style={styles.setRowHeader}>
-                <Text style={[styles.setColHeader, { width: 36 }]}>#</Text>
+                <Text style={[styles.setColHeader, { width: 24 }]}>#</Text>
                 {ex.trackingType !== 'time_hold' && (
-                  <Text style={[styles.setColHeader, { flex: 1 }]}>
+                  <Text style={[styles.setColHeader, { flex: 1, textAlign: 'center' }]}>
                     {ex.trackingType === 'reps_and_weight' ? 'Súly (kg)' : 'Típus'}
                   </Text>
                 )}
                 {ex.trackingType !== 'time_hold' ? (
-                  <Text style={[styles.setColHeader, { flex: 1 }]}>Ismétlés</Text>
+                  <Text style={[styles.setColHeader, { flex: 1, textAlign: 'center' }]}>Ismétlés</Text>
                 ) : (
-                  <Text style={[styles.setColHeader, { flex: 2 }]}>Időtartam (mp)</Text>
+                  <Text style={[styles.setColHeader, { flex: 2, textAlign: 'center' }]}>Időtartam (mp)</Text>
                 )}
-                <Text style={[styles.setColHeader, { width: 44, textAlign: 'center' }]}>Kész</Text>
-                <Text style={{ width: 24 }} />
+                <Text style={[styles.setColHeader, { width: 32, textAlign: 'center' }]}>Kész</Text>
+                <Text style={{ width: 20 }} />
               </View>
 
 
@@ -257,7 +257,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
                   key={setIdx}
                   style={[styles.setRow, set.completed && styles.setRowCompleted]}
                 >
-                  <Text style={[styles.setNumberText, { width: 36 }]}>{set.setNumber}</Text>
+                  <Text style={[styles.setNumberText, { width: 24 }]}>{set.setNumber}</Text>
 
                   {ex.trackingType === 'reps_and_weight' ? (
                     <TextInput
@@ -311,7 +311,7 @@ export const ActiveWorkoutModal: React.FC<ActiveWorkoutModalProps> = ({
                       <Text style={styles.removeSetText}>✕</Text>
                     </TouchableOpacity>
                   ) : (
-                    <View style={{ width: 24 }} />
+                    <View style={{ width: 20 }} />
                   )}
                 </View>
               ))}
@@ -415,7 +415,8 @@ const styles = StyleSheet.create({
   exerciseCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
     marginBottom: 8,
-    gap: 8,
+    gap: 6,
   },
   setColHeader: {
     fontSize: 11,
@@ -460,7 +461,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 6,
-    gap: 8,
+    gap: 6,
   },
   setRowCompleted: {
     opacity: 0.6,
@@ -469,15 +470,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#64748B',
+    textAlign: 'center',
   },
   setInput: {
     flex: 1,
+    minWidth: 0,
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
     borderColor: '#CBD5E1',
     borderRadius: 8,
     paddingVertical: 6,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
     fontSize: 13,
     color: '#0F172A',
     textAlign: 'center',
@@ -489,8 +492,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   checkBtn: {
-    width: 34,
-    height: 34,
+    width: 32,
+    height: 32,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#CBD5E1',
@@ -504,11 +507,11 @@ const styles = StyleSheet.create({
   },
   checkBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
   },
   removeSetBtn: {
-    width: 24,
+    width: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -130,9 +130,9 @@ export const useMenuData = () => {
         onPress: async () => {
           try {
             await signOut(auth);
-            navigation.navigate('Login');
+            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
           } catch (e) {
-            navigation.navigate('Login');
+            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
           }
         },
       },
