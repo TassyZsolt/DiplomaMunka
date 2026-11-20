@@ -6,7 +6,11 @@ import { doc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useStepTracker } from '../context/StepTrackerContext';
 import { getWaterData } from '../services/waterService';
-import { getTodayConsumedCalories } from '../services/dietService';
+import {
+  getTodayConsumedCalories,
+  calculateBiometrics,
+  DEFAULT_DAILY_CALORIE_GOAL,
+} from '../services/dietService';
 import { getWorkoutPlans, WorkoutPlan } from '../services/workoutService';
 
 export const useMenuData = () => {
@@ -21,6 +25,7 @@ export const useMenuData = () => {
 
   // Aktivitás és célok
   const [consumedCalories, setConsumedCalories] = useState<number>(0);
+  const [dailyCalorieGoal, setDailyCalorieGoal] = useState<number>(DEFAULT_DAILY_CALORIE_GOAL);
   const [todayWater, setTodayWater] = useState<number>(0);
 
   // Edzéstervek
@@ -57,6 +62,10 @@ export const useMenuData = () => {
             setUserData(data);
             const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
             setUserName(fullName || data.firstName || user.email?.split('@')[0] || 'Sportoló');
+
+            // Biometrikus napi kalóriakeret
+            const biometrics = calculateBiometrics(data);
+            setDailyCalorieGoal(biometrics.targetCalories);
           } else {
             setUserName(user.email?.split('@')[0] || 'Sportoló');
           }
@@ -138,6 +147,7 @@ export const useMenuData = () => {
     todaySteps,
     consumedCalories,
     setConsumedCalories,
+    dailyCalorieGoal,
     todayWater,
     setTodayWater,
     workoutPlans,

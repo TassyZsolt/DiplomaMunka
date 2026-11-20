@@ -1,5 +1,11 @@
 import { db, auth } from '../../firebaseConfig';
 import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import {
+  UserProfile,
+  getUserProfile,
+  calculateBiometrics,
+  BiometricsResult,
+} from './userService';
 
 export interface MealEntry {
   id?: string;
@@ -13,7 +19,26 @@ export interface MealEntry {
 
 export const DEFAULT_DAILY_CALORIE_GOAL = 2200;
 
-// Helyi gyorsítótár a napi étkezésekhez
+export { calculateBiometrics };
+export type { BiometricsResult };
+
+/**
+ * Lekéri a felhasználó profilja alapján számított napi kalóriakeretet
+ */
+export const getUserDailyCalorieGoal = async (userId?: string): Promise<number> => {
+  try {
+    const profile = await getUserProfile(userId);
+    if (profile) {
+      const { targetCalories } = calculateBiometrics(profile);
+      return targetCalories;
+    }
+  } catch (e) {
+    console.warn('Nem sikerült betölteni a profil alapú kalóriacélt:', e);
+  }
+  return DEFAULT_DAILY_CALORIE_GOAL;
+};
+
+// Helyi gyorsítótár napi étkezéshez
 let cachedMeals: MealEntry[] = [];
 
 /**

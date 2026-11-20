@@ -21,6 +21,7 @@ export const ProfilScreen = ({ navigation }: any) => {
     workoutCount,
     totalPr,
     bmiInfo,
+    biometricsInfo,
     fullName,
     displayEmail,
     memberSinceText,
@@ -47,7 +48,7 @@ export const ProfilScreen = ({ navigation }: any) => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
       }
     >
-      {/* 1. FEJLÉC & AVATAR KÁRTYA */}
+      {/* fejléc */}
       <View style={styles.headerCard}>
         <View style={styles.avatarWrapper}>
           <Image source={placeholderAvatar} style={styles.avatarImage} />
@@ -70,7 +71,7 @@ export const ProfilScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      {/* 2. FITNESZ CÉL KÁRTYA */}
+      {/* goal */}
       <View style={styles.goalCard}>
         <View style={styles.cardHeaderRow}>
           <Text style={styles.cardHeaderTitle}>🎯 Aktuális Fő Cél</Text>
@@ -93,7 +94,7 @@ export const ProfilScreen = ({ navigation }: any) => {
         </View>
       </View>
 
-      {/* 3. FIZIKAI MUTATÓK & BMI */}
+      {/* bmi*/}
       <View style={styles.metricsCard}>
         <Text style={styles.cardHeaderTitle}>📏 Testösszetétel & Mutatók</Text>
 
@@ -136,9 +137,30 @@ export const ProfilScreen = ({ navigation }: any) => {
             )}
           </View>
         </View>
+
+        {/* BMR & TDEE*/}
+        <View style={[styles.metricsGrid, { marginTop: spacing.sm }]}>
+          <View style={styles.metricItem}>
+            <Text style={styles.metricLabel}>BMR Alapanyag</Text>
+            <Text style={styles.metricValue}>{biometricsInfo.bmr}</Text>
+            <Text style={styles.metricSub}>kcal / nap</Text>
+          </View>
+
+          <View style={styles.metricItem}>
+            <Text style={styles.metricLabel}>TDEE Égetés</Text>
+            <Text style={styles.metricValue}>{biometricsInfo.tdee}</Text>
+            <Text style={styles.metricSub}>kcal (aktív)</Text>
+          </View>
+
+          <View style={styles.metricItem}>
+            <Text style={styles.metricLabel}>Napi Keret</Text>
+            <Text style={[styles.metricValue, { color: colors.primary }]}>{biometricsInfo.targetCalories}</Text>
+            <Text style={styles.metricSub}>kcal (cél)</Text>
+          </View>
+        </View>
       </View>
 
-      {/* 4. ÖSSZESÍTETT AKTIVITÁS (LIFETIME STATS) */}
+      {/* összesített aktivitás */}
       <View style={styles.activityCard}>
         <Text style={styles.cardHeaderTitle}>🏆 Eddigi Eredményeid</Text>
 
@@ -157,7 +179,7 @@ export const ProfilScreen = ({ navigation }: any) => {
         </View>
       </View>
 
-      {/* 5. FIÓK MŰVELETEK */}
+      {/* fiók műveletek */}
       <View style={styles.actionsCard}>
         <Text style={styles.cardHeaderTitle}>⚙️ Fiók Műveletek</Text>
 
