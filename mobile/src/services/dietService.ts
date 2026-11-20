@@ -1,5 +1,5 @@
 import { db, auth } from '../../firebaseConfig';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, doc, deleteDoc } from 'firebase/firestore';
 import {
   UserProfile,
   getUserProfile,
@@ -77,6 +77,22 @@ export const addMealData = async (
   } catch (error) {
     console.warn('Nem sikerült az étkezést Firestore-ba menteni, helyi cache használatban:', error);
     return tempId;
+  }
+};
+
+// (Meal Log CRUD)
+export const deleteMealData = async (mealId: string): Promise<void> => {
+  const user = auth.currentUser;
+  cachedMeals = cachedMeals.filter((m) => m.id !== mealId);
+
+  if (user && mealId && !mealId.startsWith('meal-')) {
+    try {
+      const mealDocRef = doc(db, 'meals', mealId);
+      await deleteDoc(mealDocRef);
+    } catch (error) {
+      console.warn('Hiba az étkezés törlésekor Firestore-ból:', error);
+      throw error;
+    }
   }
 };
 

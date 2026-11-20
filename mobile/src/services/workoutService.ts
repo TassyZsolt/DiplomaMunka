@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { colors } from '../themes/tokens';
 import { TrackingType, MuscleGroup, ExerciseDoc, getExercises } from './exerciseService';
+import { calculateEpley1Rm } from './prService';
 
 export interface ExerciseSet {
   setNumber: number;
@@ -424,8 +425,11 @@ export const saveWorkoutSession = async (
 
           if (maxWeight > currentWeight) {
             isNewPr = true;
+            const reps = setWithMaxWeight?.reps || 1;
             prPayload.weight = maxWeight;
-            prPayload.reps = setWithMaxWeight?.reps || 1;
+            prPayload.reps = reps;
+            prPayload.estimated1Rm = calculateEpley1Rm(maxWeight, reps);
+            prPayload.totalVolumeKg = Math.round(maxWeight * reps);
           }
         } else if (ex.trackingType === 'reps_only') {
           const maxReps = Math.max(0, ...completedSets.map((s) => s.reps || 0));
