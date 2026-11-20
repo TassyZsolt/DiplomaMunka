@@ -26,10 +26,10 @@ import {
 } from '../../services/prService';
 import {
   DAILY_STEP_GOAL,
-  getTodaySteps,
   calculateDistanceKm,
   calculateCaloriesKcal,
 } from '../../services/stepService';
+import { useStepTracker } from '../../context/StepTrackerContext';
 import {
   getWorkoutSessions,
   getWeeklyWorkoutStats,
@@ -40,13 +40,13 @@ import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 const DAILY_WATER_TARGET = 2000; // ml
 
 const StatScreen = ({ navigation }: any) => {
+  // Lépésszámláló valós állapota
+  const { todaySteps, refreshStepData } = useStepTracker();
+
   // Vízfogyasztás
   const [totalWater, setTotalWater] = useState<number>(0);
   const [waterModalVisible, setWaterModalVisible] = useState<boolean>(false);
   const [customWaterAmount, setCustomWaterAmount] = useState<string>('');
-
-  // Lépésszámláló
-  const [todaySteps, setTodaySteps] = useState<number>(6420);
 
   // Heti statisztikák
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null);
@@ -70,14 +70,11 @@ const StatScreen = ({ navigation }: any) => {
       } catch (e) {
               }
 
-      // Lépések a beépített hardverből
+      // Lépések frissítése
       try {
-        const stepsFromHw = await getTodaySteps();
-        if (stepsFromHw > 0) {
-          setTodaySteps(stepsFromHw);
-        }
+        await refreshStepData();
       } catch (e) {
-              }
+      }
 
             const [availExercises, prs] = await Promise.all([
         getAvailableExercises(),

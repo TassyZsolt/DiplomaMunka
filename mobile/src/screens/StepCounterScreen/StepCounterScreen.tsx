@@ -1,99 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Platform,
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
-import { Pedometer } from 'expo-sensors';
 import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 import {
   DAILY_STEP_GOAL,
-  checkPedometerAvailability,
-  requestPedometerPermission,
-  getTodaySteps,
   calculateDistanceKm,
-  calculateCaloriesKcal,
-  calculateActiveMinutes,
-  updateCachedSteps,
 } from '../../services/stepService';
-
-// 7 napos előzmény adatok (szemléltetéshez / drill-down elemzéshez)
-const WEEKLY_STEP_DATA = [
-  { day: 'H', date: 'Okt 05', steps: 8940, reached: false },
-  { day: 'K', date: 'Okt 06', steps: 11250, reached: true },
-  { day: 'Sze', date: 'Okt 07', steps: 10420, reached: true },
-  { day: 'Cs', date: 'Okt 08', steps: 7890, reached: false },
-  { day: 'P', date: 'Okt 09', steps: 12400, reached: true },
-  { day: 'Szo', date: 'Okt 10', steps: 6420, reached: false, isToday: true },
-  { day: 'V', date: 'Okt 11', steps: 0, reached: false },
-];
-
-// Óránkénti aktivitás minta (Mai nap bontása)
-const HOURLY_STEPS = [
-  { hour: '08h', steps: 950 },
-  { hour: '10h', steps: 1400 },
-  { hour: '12h', steps: 1100 },
-  { hour: '14h', steps: 850 },
-  { hour: '16h', steps: 1620 },
-  { hour: '18h', steps: 500 },
-];
+import { useStepTracker } from '../../context/StepTrackerContext';
 
 const StepCounterScreen = ({ navigation }: any) => {
   const [activeTab, setActiveTab] = useState<'today' | 'weekly' | 'cadence'>('today');
-  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [pastSteps, setPastSteps] = useState<number>(0);
-  const [liveSteps, setLiveSteps] = useState<number>(0);
-  const [simulatedSteps, setSimulatedSteps] = useState<number>(0);
-  const [statusNote, setStatusNote] = useState<string>('Érzékelő keresése...');
 
-  useEffect(() => {
-    let subscription: { remove: () => void } | null = null;
+  // Globális, idempotensen lépéskövető adatok
+  const {
+    todaySteps,
+    dailyGoal,
+    distanceKm,
+    caloriesKcal,
+    activeMinutes,
+    cadence,
+    isAvailable,
+    hasPermission,
+    statusNote,
+    weeklyHistory,
+    hourlyBreakdown,
+    addSimulatedSteps,
+    resetSimulatedSteps,
+  } = useStepTracker();
 
-    const setupPedometer = async () => {
-      const available = await checkPedometerAvailability();
-      setIsAvailable(available);
-
-      if (!available) {
-        setStatusNote('A készüléken nem található lépésszámláló hardver (szimulátor mód).');
-        setSimulatedSteps(6420);
-        return;
-      }
-
-      const permissionGranted = await requestPedometerPermission();
-      setHasPermission(permissionGranted);
-
-      if (!permissionGranted) {
-        setStatusNote('A lépésszámlálóhoz szükséges engedély megtagadva.');
-        return;
-      }
-
-      setStatusNote('🟢 Beépített alacsony fogyasztású érzékelő aktív');
-
-      const todayCount = await getTodaySteps();
-      setPastSteps(todayCount);
-
-      subscription = Pedometer.watchStepCount((result) => {
-        setLiveSteps(result.steps);
-        updateCachedSteps(result.steps);
-      });
-    };
-
-    setupPedometer();
-
-    return () => {
-      if (subscription) {
-        subscription.remove();
-      }
-    };
-  }, []);
-
-  const totalSteps = pastSteps + liveSteps + simulatedSteps;
-  const progressPercent = Math.min(Math.round((totalSteps / DAILY_STEP_GOAL) * 100), 100);
+  const totalSteps = todaySteps;
+  const progressPercent = Math.min(Math.round((totalSteps / dailyGoal) * 100), 100);
 
   // SVG kördiagram
   const size = 200;
@@ -102,24 +44,15 @@ const StepCounterScreen = ({ navigation }: any) => {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
 
-  const distance = calculateDistanceKm(totalSteps);
-  const calories = calculateCaloriesKcal(totalSteps);
-  const activeMinutes = calculateActiveMinutes(totalSteps);
-  const cadence = activeMinutes > 0 ? Math.round(totalSteps / activeMinutes) : 95; // lépés / perc
-
-  // 7 napos számítások
-  const past6DaysSum = WEEKLY_STEP_DATA.slice(0, 5).reduce((s, d) => s + d.steps, 0) + totalSteps;
-  const weeklyAverage = Math.round(past6DaysSum / 6);
-
-  const handleAddTestSteps = (amount: number) => {
-    setSimulatedSteps((prev) => prev + amount);
-  };
-
-  const handleResetTestSteps = () => {
-    setSimulatedSteps(0);
-    setLiveSteps(0);
-  };
-
+  // 7 napos statiszika
+  const totalWeeklySteps = weeklyHistory.reduce((s, d) => s + d.steps, 0);
+  const weeklyAverage = weeklyHistory.length > 0 ? Math.round(totalWeeklySteps / weeklyHistory.length) : 0;
+  const reachedGoalsCount = weeklyHistory.filter((d) => d.reached).length;
+  const maxWeeklySteps = Math.max(...weeklyHistory.map((d) => d.steps), 10000);
+  const mostActiveDay = weeklyHistory.reduce(
+    (max, d) => (d.steps > max.steps ? d : max),
+    weeklyHistory[0] || { day: 'Ma', steps: 0 }
+  );
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text style={styles.title}>Lépésszámláló</Text>
@@ -226,8 +159,8 @@ const StepCounterScreen = ({ navigation }: any) => {
           <View style={styles.hourlyCard}>
             <Text style={styles.hourlyCardTitle}>Óránkénti lépéseloszlás ma</Text>
             <View style={styles.hourlyChartRow}>
-              {HOURLY_STEPS.map((h, i) => {
-                const maxH = 1800;
+              {hourlyBreakdown.map((h, i) => {
+                const maxH = Math.max(...hourlyBreakdown.map((item) => item.steps), 1000);
                 const barHeight = Math.max(12, Math.min(100, (h.steps / maxH) * 100));
                 return (
                   <View key={i} style={styles.hourlyBarCol}>
@@ -256,7 +189,9 @@ const StepCounterScreen = ({ navigation }: any) => {
                 </Text>
               </View>
               <View style={styles.weeklyBadge}>
-                <Text style={styles.weeklyBadgeText}>3/6 Cél elérve</Text>
+                <Text style={styles.weeklyBadgeText}>
+                  {reachedGoalsCount}/{weeklyHistory.length} Cél elérve
+                </Text>
               </View>
             </View>
 
@@ -267,8 +202,11 @@ const StepCounterScreen = ({ navigation }: any) => {
 
             
             <View style={styles.barsContainer}>
-              {WEEKLY_STEP_DATA.map((item, idx) => {
-                const heightPercent = Math.min(100, Math.max(10, (item.steps / 13000) * 100));
+              {weeklyHistory.map((item, idx) => {
+                const heightPercent = Math.min(
+                  100,
+                  Math.max(10, (item.steps / (maxWeeklySteps * 1.15)) * 100)
+                );
                 return (
                   <View key={idx} style={styles.barColumn}>
                     <View style={styles.barTrack}>
@@ -301,9 +239,11 @@ const StepCounterScreen = ({ navigation }: any) => {
           <View style={styles.trendCard}>
             <Text style={styles.trendTitle}>📈 Heti trend elemzés</Text>
             <Text style={styles.trendText}>
-              Az elmúlt 7 napban összesen {past6DaysSum.toLocaleString('hu-HU')} lépést tettél meg,
-              amely kb. {((past6DaysSum * 0.75) / 1000).toFixed(1)} km távolságnak felel meg!
-              A legaktívabb napod a péntek volt (12 400 lépés).
+              Az elmúlt 7 napban összesen {totalWeeklySteps.toLocaleString('hu-HU')} lépést tettél meg,
+              amely kb. {calculateDistanceKm(totalWeeklySteps)} km távolságnak felel meg!
+              {mostActiveDay.steps > 0
+                ? ` A legaktívabb napod: ${mostActiveDay.day} (${mostActiveDay.steps.toLocaleString('hu-HU')} lépés).`
+                : ''}
             </Text>
           </View>
         </View>
@@ -336,7 +276,7 @@ const StepCounterScreen = ({ navigation }: any) => {
 
             <View style={styles.cadenceCard}>
               <Text style={styles.cadenceIcon}>🔥</Text>
-              <Text style={styles.cadenceValue}>{calories}</Text>
+              <Text style={styles.cadenceValue}>{caloriesKcal}</Text>
               <Text style={styles.cadenceUnit}>aktív kcal ma</Text>
               <Text style={styles.cadenceSubtext}>Természetes mozgásból</Text>
             </View>
@@ -348,13 +288,13 @@ const StepCounterScreen = ({ navigation }: any) => {
       <View style={styles.metricsRow}>
         <View style={styles.metricCard}>
           <Text style={styles.metricIcon}>📍</Text>
-          <Text style={styles.metricValue}>{distance}</Text>
+          <Text style={styles.metricValue}>{distanceKm}</Text>
           <Text style={styles.metricUnit}>kilométer</Text>
         </View>
 
         <View style={styles.metricCard}>
           <Text style={styles.metricIcon}>🔥</Text>
-          <Text style={styles.metricValue}>{calories}</Text>
+          <Text style={styles.metricValue}>{caloriesKcal}</Text>
           <Text style={styles.metricUnit}>kcal elégetve</Text>
         </View>
 
@@ -369,15 +309,15 @@ const StepCounterScreen = ({ navigation }: any) => {
 
       
       <View style={styles.testSection}>
-        <Text style={styles.testTitle}>Tesztvezérlő (Szimulátor / Asztali teszt)</Text>
+        <Text style={styles.testTitle}>Tesztvezérlő (Szimulátor / Védési bemutató)</Text>
         <View style={styles.testButtonsRow}>
-          <TouchableOpacity style={styles.testButton} onPress={() => handleAddTestSteps(500)}>
+          <TouchableOpacity style={styles.testButton} onPress={() => addSimulatedSteps(500)}>
             <Text style={styles.testButtonText}>+500 lépés</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.testButton} onPress={() => handleAddTestSteps(1000)}>
+          <TouchableOpacity style={styles.testButton} onPress={() => addSimulatedSteps(1000)}>
             <Text style={styles.testButtonText}>+1000 lépés</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.testButton, styles.testResetButton]} onPress={handleResetTestSteps}>
+          <TouchableOpacity style={[styles.testButton, styles.testResetButton]} onPress={resetSimulatedSteps}>
             <Text style={styles.testResetButtonText}>Alaphelyzet</Text>
           </TouchableOpacity>
         </View>

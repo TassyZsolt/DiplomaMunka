@@ -106,7 +106,7 @@ const DietScreen = ({ navigation }: any) => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      
+
       <View style={styles.summaryCard}>
         <View style={styles.summaryTopRow}>
           <View>
@@ -130,7 +130,7 @@ const DietScreen = ({ navigation }: any) => {
         </Text>
       </View>
 
-      
+
       <Text style={styles.sectionHeading}>Válassz étrend típust:</Text>
       <View style={styles.dietSelectorRow}>
         {DIET_TYPES.map((diet) => {
@@ -150,7 +150,7 @@ const DietScreen = ({ navigation }: any) => {
         })}
       </View>
 
-      
+
       {(() => {
         const active = DIET_TYPES.find((d) => d.id === selectedDiet) || DIET_TYPES[0];
         return (
@@ -164,7 +164,7 @@ const DietScreen = ({ navigation }: any) => {
         );
       })()}
 
-      
+
       <View style={styles.addMealCard}>
         <Text style={styles.addMealTitle}>➕ Étkezés hozzáadása</Text>
 
@@ -213,7 +213,7 @@ const DietScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      
+
       <Text style={styles.sectionHeading}>Mai rögzített étkezések ({todayMeals.length}):</Text>
       {todayMeals.length === 0 ? (
         <View style={styles.emptyMealsCard}>

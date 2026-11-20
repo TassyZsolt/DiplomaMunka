@@ -14,29 +14,32 @@ import EditProfileScreen from './src/screens/ProfileScreen/EditProfileScreen';
 import PersonalStatsScreen from './src/screens/PersonalStatsScreen/PersonalStatsScreen';
 import StepCounterScreen from './src/screens/StepCounterScreen/StepCounterScreen';
 import WorkoutProgressScreen from './src/screens/WorkoutProgressScreen/WorkoutProgressScreen';
+import { StepTrackerProvider } from './src/context/StepTrackerContext';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
-        <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Főoldal'}}/>
-        <Stack.Screen name="Register" component={RegisterScreen} options={{headerShown: false}} />
-        <Stack.Screen name="Menu" component={MenuScreen} options={{title: 'Főmenü', headerBackVisible: false}} />
-        <Stack.Screen name="Profil" component={ProfilScreen} options={{title: 'Profil oldal'}} />
-        <Stack.Screen name="Stats" component={StatScreen} options={{title: 'Statisztika oldal'}} />
-        <Stack.Screen name="Exercise" component={ExerciseScreen} options={{title: 'Edzés oldal'}} />
-        <Stack.Screen name="Diet" component={DietScreen} options={{title: 'Diéta oldal'}} />
-        <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{title: 'Profil szerkesztése'}} />
-        <Stack.Screen name="PersonalStats" component={PersonalStatsScreen} options={{title: 'Személyes statisztikák'}} />
-        <Stack.Screen name="personalStats" component={PersonalStatsScreen} options={{title: 'Személyes statisztikák'}} />
-        <Stack.Screen name="StepCounter" component={StepCounterScreen} options={{title: 'Lépésszámláló'}} />
-        <Stack.Screen name="stepCounter" component={StepCounterScreen} options={{title: 'Lépésszámláló'}} />
-        <Stack.Screen name="WorkoutProgress" component={WorkoutProgressScreen} options={{title: 'Edzések & Előrehaladás'}} />
-        <Stack.Screen name="workoutProgress" component={WorkoutProgressScreen} options={{title: 'Edzések & Előrehaladás'}} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <StepTrackerProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
+          <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Főoldal'}}/>
+          <Stack.Screen name="Register" component={RegisterScreen} options={{headerShown: false}} />
+          <Stack.Screen name="Menu" component={MenuScreen} options={{title: 'Főmenü', headerBackVisible: false}} />
+          <Stack.Screen name="Profil" component={ProfilScreen} options={{title: 'Profil oldal'}} />
+          <Stack.Screen name="Stats" component={StatScreen} options={{title: 'Statisztika oldal'}} />
+          <Stack.Screen name="Exercise" component={ExerciseScreen} options={{title: 'Edzés oldal'}} />
+          <Stack.Screen name="Diet" component={DietScreen} options={{title: 'Diéta oldal'}} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{title: 'Profil szerkesztése'}} />
+          <Stack.Screen name="PersonalStats" component={PersonalStatsScreen} options={{title: 'Személyes statisztikák'}} />
+          <Stack.Screen name="personalStats" component={PersonalStatsScreen} options={{title: 'Személyes statisztikák'}} />
+          <Stack.Screen name="StepCounter" component={StepCounterScreen} options={{title: 'Lépésszámláló'}} />
+          <Stack.Screen name="stepCounter" component={StepCounterScreen} options={{title: 'Lépésszámláló'}} />
+          <Stack.Screen name="WorkoutProgress" component={WorkoutProgressScreen} options={{title: 'Edzések & Előrehaladás'}} />
+          <Stack.Screen name="workoutProgress" component={WorkoutProgressScreen} options={{title: 'Edzések & Előrehaladás'}} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </StepTrackerProvider>
   );
 }

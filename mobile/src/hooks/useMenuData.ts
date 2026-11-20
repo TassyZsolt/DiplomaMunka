@@ -4,16 +4,15 @@ import { useFocusEffect } from '@react-navigation/native';
 import { auth, db } from '../../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import {
-  getTodaySteps,
-  checkPedometerAvailability,
-  requestPedometerPermission,
-} from '../services/stepService';
+import { useStepTracker } from '../context/StepTrackerContext';
 import { getWaterData } from '../services/waterService';
 import { getTodayConsumedCalories } from '../services/dietService';
 import { getWorkoutPlans, WorkoutPlan } from '../services/workoutService';
 
 export const useMenuData = () => {
+  // Lépésszámláló kontextus
+  const { todaySteps, refreshStepData } = useStepTracker();
+
   // Felhasználói profil
   const [userData, setUserData] = useState<any>(null);
   const [userName, setUserName] = useState<string>('Sportoló');
@@ -21,7 +20,6 @@ export const useMenuData = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
   // Aktivitás és célok
-  const [todaySteps, setTodaySteps] = useState<number>(6420);
   const [consumedCalories, setConsumedCalories] = useState<number>(0);
   const [todayWater, setTodayWater] = useState<number>(0);
 
@@ -48,7 +46,7 @@ export const useMenuData = () => {
   // Adatok frissítése és betöltése
   const loadDashboardData = async () => {
     try {
-      // Felhasználói adatok lekérése Firestore-ból
+      // Felhasználói adatok lekérése
       const user = auth.currentUser;
       if (user) {
         try {
@@ -70,20 +68,11 @@ export const useMenuData = () => {
         }
       }
 
-      // Lépések lekérése a stepService-ből
+      // Lépés adat frissítés
       try {
-        const available = await checkPedometerAvailability();
-        if (available) {
-          const hasPerm = await requestPedometerPermission();
-          if (hasPerm) {
-            const steps = await getTodaySteps();
-            if (steps > 0) {
-              setTodaySteps(steps);
-            }
-          }
-        }
+        await refreshStepData();
       } catch (err) {
-        console.warn('Lépésszámláló nem elérhető:', err);
+        console.warn('Lépésadatok frissítése sikertelen:', err);
       }
 
       // Vízfogyasztás lekérése a waterService-ből
