@@ -96,11 +96,11 @@ export const useProfileData = (navigation?: any) => {
           try {
             await signOut(auth);
             if (navToUse) {
-              navToUse.navigate('Login');
+              navToUse.reset({ index: 0, routes: [{ name: 'Login' }] });
             }
           } catch (e) {
             if (navToUse) {
-              navToUse.navigate('Login');
+              navToUse.reset({ index: 0, routes: [{ name: 'Login' }] });
             }
           }
         },
