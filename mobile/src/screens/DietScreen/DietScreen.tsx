@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { colors } from '../../themes/tokens';
+import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 import {
   getTodayMeals,
   getTodayConsumedCalories,
@@ -76,13 +76,11 @@ const DietScreen = ({ navigation }: any) => {
 
   const handleSelectDiet = (typeId: string) => {
     setSelectedDiet(typeId);
-    const target = DIET_TYPES.find((d) => d.id === typeId);
-    Alert.alert('Étrend kiválasztva', `Aktív étrend: ${target?.title || typeId}`);
   };
 
   const handleAddMeal = async () => {
     const cals = parseInt(mealCalories, 10);
-    if (isNaN(cals) || cals <= 0) {
+    if (isNaN(cals) || cals <= 0 || cals > 3500) {
       Alert.alert('Hiba', 'Kérlek adj meg érvényes kalóriaértéket!');
       return;
     }
@@ -187,7 +185,7 @@ const DietScreen = ({ navigation }: any) => {
         <TextInput
           style={styles.textInput}
           placeholder="Étel neve (pl. Zabkása gyümölcsökkel)"
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.textLight}
           value={mealName}
           onChangeText={setMealName}
         />
@@ -195,7 +193,7 @@ const DietScreen = ({ navigation }: any) => {
         <TextInput
           style={styles.textInput}
           placeholder="Kalória (kcal, pl. 380)"
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.textLight}
           keyboardType="numeric"
           value={mealCalories}
           onChangeText={setMealCalories}
@@ -208,7 +206,7 @@ const DietScreen = ({ navigation }: any) => {
           activeOpacity={0.85}
         >
           {isSaving ? (
-            <ActivityIndicator color="#FFFFFF" size="small" />
+            <ActivityIndicator color={colors.white} size="small" />
           ) : (
             <Text style={styles.saveMealBtnText}>Kalória hozzáadása a mai naphoz</Text>
           )}
@@ -246,98 +244,94 @@ export default DietScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   content: {
     padding: 18,
   },
   summaryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.header,
     padding: 18,
-    marginBottom: 20,
+    marginBottom: spacing.xl,
     borderLeftWidth: 5,
-    borderLeftColor: '#10B981',
+    borderLeftColor: colors.success,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    borderColor: colors.border,
+    ...shadows.card,
   },
   summaryTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   summaryLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#059669',
+    color: colors.successDark,
     letterSpacing: 0.5,
   },
   summaryValue: {
     fontSize: 24,
     fontWeight: '900',
-    color: colors.neutral[900],
+    color: colors.textPrimary,
     marginTop: 2,
   },
   summaryGoal: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.neutral[400],
+    color: colors.textLight,
   },
   percentBadge: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.successLight,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 10,
+    borderRadius: borderRadius.md,
   },
   percentText: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#15803D',
+    color: colors.successText,
   },
   progressBarTrack: {
     height: 8,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 4,
+    backgroundColor: colors.borderLight,
+    borderRadius: borderRadius.xs,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#10B981',
-    borderRadius: 4,
+    backgroundColor: colors.success,
+    borderRadius: borderRadius.xs,
   },
   remainingText: {
     fontSize: 12,
     fontWeight: '500',
-    color: colors.neutral[500],
+    color: colors.textMuted,
   },
 
   sectionHeading: {
     fontSize: 16,
     fontWeight: '800',
-    color: colors.neutral[900],
+    color: colors.textPrimary,
     marginBottom: 10,
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
   dietSelectorRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
   dietTabBtn: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   dietTabBtnActive: {
     backgroundColor: colors.primary,
@@ -346,137 +340,137 @@ const styles = StyleSheet.create({
   dietTabBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.neutral[700],
+    color: colors.textSecondary,
   },
   dietTabBtnTextActive: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontWeight: '700',
   },
 
   dietDetailCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.card,
+    padding: spacing.lg,
+    marginBottom: spacing.xl,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   dietDetailTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: colors.neutral[900],
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   dietDetailDesc: {
     fontSize: 13,
-    color: colors.neutral[600],
+    color: colors.slate[600],
     lineHeight: 18,
     marginBottom: 10,
   },
   macrosBadge: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colors.borderLight,
     paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
   },
   macrosBadgeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.neutral[700],
+    color: colors.textSecondary,
   },
 
   addMealCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.card,
+    padding: spacing.lg,
+    marginBottom: spacing.xl,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   addMealTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: colors.neutral[900],
-    marginBottom: 12,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
   },
   mealTypeRow: {
     flexDirection: 'row',
     gap: 6,
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   mealTypeChip: {
     flex: 1,
     paddingVertical: 7,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.borderLight,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   mealTypeChipActive: {
-    backgroundColor: '#DCFCE7',
-    borderColor: '#10B981',
+    backgroundColor: colors.successLight,
+    borderColor: colors.success,
   },
   mealTypeChipText: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.neutral[600],
+    color: colors.slate[600],
   },
   mealTypeChipTextActive: {
-    color: '#047857',
+    color: colors.successDark,
     fontWeight: '700',
   },
   textInput: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
     paddingVertical: 9,
     fontSize: 13,
-    color: colors.neutral[900],
+    color: colors.textPrimary,
     marginBottom: 10,
   },
   saveMealBtn: {
-    backgroundColor: '#10B981',
-    borderRadius: 10,
-    paddingVertical: 12,
+    backgroundColor: colors.success,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
   saveMealBtnText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 13,
     fontWeight: '700',
   },
 
   emptyMealsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 20,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   emptyMealsText: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.neutral[700],
-    marginBottom: 4,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
   },
   emptyMealsSub: {
     fontSize: 12,
-    color: colors.neutral[400],
+    color: colors.textLight,
     textAlign: 'center',
   },
 
   mealsListWrapper: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.border,
   },
   mealItemRow: {
     flexDirection: 'row',
@@ -485,7 +479,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: colors.borderLight,
   },
   mealItemLeft: {
     flex: 1,
@@ -493,16 +487,16 @@ const styles = StyleSheet.create({
   mealItemName: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.neutral[900],
+    color: colors.textPrimary,
   },
   mealItemType: {
     fontSize: 11,
-    color: colors.neutral[500],
+    color: colors.textMuted,
     marginTop: 1,
   },
   mealItemCalories: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#10B981',
+    color: colors.success,
   },
 });

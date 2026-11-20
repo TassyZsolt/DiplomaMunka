@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Button, Text, StyleSheet } from 'react-native';
 import { globalStyles } from '../../../globalStyles';
-import { colors } from '../../themes/tokens';
+import { colors, spacing } from '../../themes/tokens';
 
 
 const HomeScreen = ({ navigation }: any) => {
@@ -26,15 +26,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: spacing.xl,
     backgroundColor: colors.background,
   },
   title: {
     fontSize: 24,
-    marginBottom: 30,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginBottom: spacing['3xl'],
     textAlign: 'center',
   },
   button: {
-    marginBottom: 15,
+    marginBottom: spacing.lg,
   },
 });

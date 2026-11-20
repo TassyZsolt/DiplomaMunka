@@ -5,7 +5,7 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
-import { colors } from '../../themes/tokens';
+import { colors, spacing } from '../../themes/tokens';
 import { useMenuData } from '../../hooks/useMenuData';
 import { getTodayConsumedCalories } from '../../services/dietService';
 import { MenuHeader } from '../../components/menu/MenuHeader';
@@ -89,7 +89,7 @@ const MenuScreen = ({ navigation }: any) => {
           onLogout={() => handleLogout(navigation)}
         />
 
-        <View style={{ height: 32 }} />
+        <View style={{ height: spacing['3xl'] }} />
       </ScrollView>
 
       
@@ -127,14 +127,14 @@ export default MenuScreen;
 const styles = StyleSheet.create({
   screenWrapper: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 24,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl,
   },
 });

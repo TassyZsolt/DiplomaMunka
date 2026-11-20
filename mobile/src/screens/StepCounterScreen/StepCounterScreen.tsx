@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { Pedometer } from 'expo-sensors';
-import { colors } from '../../themes/tokens';
+import { colors, spacing, borderRadius, shadows } from '../../themes/tokens';
 import {
   DAILY_STEP_GOAL,
   checkPedometerAvailability,
@@ -281,7 +281,7 @@ const StepCounterScreen = ({ navigation }: any) => {
                               ? colors.primary
                               : item.reached
                               ? colors.secondary
-                              : '#CBD5E1',
+                              : colors.slate[300],
                           },
                         ]}
                       />
@@ -427,17 +427,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   badgeSuccess: {
-    backgroundColor: '#E8F8F0',
+    backgroundColor: colors.successLight,
   },
   badgeSuccessText: {
     color: colors.secondary,
     fontWeight: '600',
   },
   badgeWarning: {
-    backgroundColor: '#FFF4E5',
+    backgroundColor: colors.slate[100],
   },
   badgeWarningText: {
-    color: '#D97706',
+    color: colors.warning,
     fontWeight: '600',
   },
   segmentContainer: {
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     color: colors.neutral[600],
   },
   segmentBtnTextActive: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   tabContent: {
     width: '100%',
@@ -481,11 +481,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 24,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    ...shadows.card,
     marginBottom: 18,
   },
   ringContainer: {
@@ -526,7 +522,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   celebrationBox: {
-    backgroundColor: '#E8F8F0',
+    backgroundColor: colors.successLight,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
@@ -620,7 +616,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   weeklyBadge: {
-    backgroundColor: '#E8F8F0',
+    backgroundColor: colors.successLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -638,7 +634,7 @@ const styles = StyleSheet.create({
   goalLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#CBD5E1',
+    backgroundColor: colors.slate[300],
     borderStyle: 'dashed',
   },
   goalLineText: {
@@ -685,22 +681,22 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   trendCard: {
-    backgroundColor: '#F0F9FF',
+    backgroundColor: colors.primaryLight,
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#BAE6FD',
+    borderColor: colors.primaryBorder,
     marginBottom: 18,
   },
   trendTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#0284C7',
+    color: colors.primary,
     marginBottom: 4,
   },
   trendText: {
     fontSize: 12,
-    color: '#0369A1',
+    color: colors.primaryDark,
     lineHeight: 18,
   },
   cadenceGrid: {
@@ -753,11 +749,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 8,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...shadows.sm,
   },
   metricIcon: {
     fontSize: 20,
@@ -776,11 +768,11 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     width: '100%',
-    backgroundColor: '#F0F7FF',
+    backgroundColor: colors.primaryLight,
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#D0E4FF',
+    borderColor: colors.primaryBorderLight,
     marginBottom: 18,
   },
   infoTitle: {
@@ -822,7 +814,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   testButtonText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 12,
     fontWeight: '600',
   },
