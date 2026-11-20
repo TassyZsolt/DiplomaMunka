@@ -7,7 +7,9 @@ import {
   UserProfile,
   getUserProfile,
   calculateBmi,
+  calculateBiometrics,
   BmiResult,
+  BiometricsResult,
   formatMemberSince,
 } from '../services/userService';
 import { getWorkoutSessions } from '../services/workoutService';
@@ -107,6 +109,7 @@ export const useProfileData = (navigation?: any) => {
   };
 
   const bmiInfo: BmiResult | null = calculateBmi(userData?.weight, userData?.height);
+  const biometricsInfo: BiometricsResult = calculateBiometrics(userData);
   const fullName = `${userData?.lastName || ''} ${userData?.firstName || ''}`.trim() || 'Sportoló';
   const displayEmail = userData?.email || auth.currentUser?.email || 'Nincs megadva';
   const memberSinceText = formatMemberSince(userData?.createdAt);
@@ -118,6 +121,7 @@ export const useProfileData = (navigation?: any) => {
     workoutCount,
     totalPr,
     bmiInfo,
+    biometricsInfo,
     fullName,
     displayEmail,
     memberSinceText,

@@ -31,6 +31,8 @@ const EditProfileScreen = ({ route, navigation }: any) => {
   const [firstName, setFirstName] = useState<string>(userData.firstName || '');
   const [weight, setWeight] = useState<string>(userData.weight ? String(userData.weight) : '');
   const [height, setHeight] = useState<string>(userData.height ? String(userData.height) : '');
+  const [age, setAge] = useState<string>(userData.age ? String(userData.age) : '');
+  const [gender, setGender] = useState<string>(userData.gender || 'Férfi');
   const [fitnessGoal, setFitnessGoal] = useState<string>(userData.fitnessGoal || 'Izomtömeg-növelés');
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
@@ -61,6 +63,16 @@ const EditProfileScreen = ({ route, navigation }: any) => {
       }
     }
 
+    // 4. Életkor érvényesítés (ha meg van adva)
+    let parsedAge: number | null = null;
+    if (age.trim()) {
+      parsedAge = parseInt(age.trim(), 10);
+      if (isNaN(parsedAge) || parsedAge < 12 || parsedAge > 120) {
+        Alert.alert('Érvénytelen életkor', 'Az életkor 12 és 120 év között lehet!');
+        return;
+      }
+    }
+
     try {
       setIsSaving(true);
 
@@ -70,6 +82,8 @@ const EditProfileScreen = ({ route, navigation }: any) => {
         firstName: firstName.trim(),
         weight: parsedWeight,
         height: parsedHeight,
+        age: parsedAge,
+        gender,
         fitnessGoal,
       });
 
@@ -150,6 +164,37 @@ const EditProfileScreen = ({ route, navigation }: any) => {
                 onChangeText={setHeight}
                 keyboardType="numeric"
               />
+            </View>
+          </View>
+
+          <View style={[styles.rowInputs, { marginTop: spacing.sm }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.inputLabel}>Életkor (év)</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="pl. 24"
+                placeholderTextColor={colors.textLight}
+                value={age}
+                onChangeText={setAge}
+                keyboardType="numeric"
+              />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.inputLabel}>Biológiai Nem</Text>
+              <View style={styles.genderRow}>
+                {['Férfi', 'Nő'].map((g) => (
+                  <TouchableOpacity
+                    key={g}
+                    style={[styles.genderBtn, gender === g && styles.genderBtnActive]}
+                    onPress={() => setGender(g)}
+                  >
+                    <Text style={[styles.genderBtnText, gender === g && styles.genderBtnTextActive]}>
+                      {g}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
         </View>
@@ -280,6 +325,32 @@ const styles = StyleSheet.create({
   rowInputs: {
     flexDirection: 'row',
     gap: spacing.md,
+  },
+  genderRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  genderBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  genderBtnActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  genderBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  genderBtnTextActive: {
+    color: colors.white,
   },
   // Célválasztó
   goalPillsContainer: {

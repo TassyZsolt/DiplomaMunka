@@ -16,8 +16,10 @@ import {
   getTodayConsumedCalories,
   addMealData,
   DEFAULT_DAILY_CALORIE_GOAL,
+  calculateBiometrics,
   MealEntry,
 } from '../../services/dietService';
+import { getUserProfile, UserProfile } from '../../services/userService';
 
 const DIET_TYPES = [
   {
@@ -44,6 +46,7 @@ const DietScreen = ({ navigation }: any) => {
   const [selectedDiet, setSelectedDiet] = useState<string>('Regular');
   const [consumedCalories, setConsumedCalories] = useState<number>(0);
   const [todayMeals, setTodayMeals] = useState<MealEntry[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Új étkezés gyors hozzáadás űrlap
@@ -55,12 +58,14 @@ const DietScreen = ({ navigation }: any) => {
   // Adatok betöltése képernyőre lépéskor
   const loadDietData = async () => {
     try {
-      const [cals, meals] = await Promise.all([
+      const [cals, meals, profile] = await Promise.all([
         getTodayConsumedCalories(),
         getTodayMeals(),
+        getUserProfile(),
       ]);
       setConsumedCalories(cals);
       setTodayMeals(meals);
+      setUserProfile(profile);
     } catch (e) {
       console.warn('Hiba az étrend adatok betöltésekor:', e);
     } finally {
@@ -99,21 +104,25 @@ const DietScreen = ({ navigation }: any) => {
     }
   };
 
+  // biometrikus számítás
+  const biometrics = calculateBiometrics(userProfile, selectedDiet);
+  const targetCalories = biometrics.targetCalories;
+
   const caloriePercent = Math.min(
     100,
-    Math.round((consumedCalories / DEFAULT_DAILY_CALORIE_GOAL) * 100)
+    Math.round((consumedCalories / targetCalories) * 100)
   );
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      
+
       <View style={styles.summaryCard}>
         <View style={styles.summaryTopRow}>
           <View>
             <Text style={styles.summaryLabel}>MAI ELFOGYASZTOTT KALÓRIA</Text>
             <Text style={styles.summaryValue}>
               {consumedCalories}{' '}
-              <Text style={styles.summaryGoal}>/ {DEFAULT_DAILY_CALORIE_GOAL} kcal</Text>
+              <Text style={styles.summaryGoal}>/ {targetCalories} kcal</Text>
             </Text>
           </View>
           <View style={styles.percentBadge}>
@@ -126,11 +135,11 @@ const DietScreen = ({ navigation }: any) => {
         </View>
 
         <Text style={styles.remainingText}>
-          {Math.max(0, DEFAULT_DAILY_CALORIE_GOAL - consumedCalories)} kcal maradt a napi célból
+          {Math.max(0, targetCalories - consumedCalories)} kcal maradt a napi célból
         </Text>
       </View>
 
-      
+
       <Text style={styles.sectionHeading}>Válassz étrend típust:</Text>
       <View style={styles.dietSelectorRow}>
         {DIET_TYPES.map((diet) => {
@@ -150,7 +159,7 @@ const DietScreen = ({ navigation }: any) => {
         })}
       </View>
 
-      
+
       {(() => {
         const active = DIET_TYPES.find((d) => d.id === selectedDiet) || DIET_TYPES[0];
         return (
@@ -158,13 +167,20 @@ const DietScreen = ({ navigation }: any) => {
             <Text style={styles.dietDetailTitle}>🥗 {active.title} étrend</Text>
             <Text style={styles.dietDetailDesc}>{active.desc}</Text>
             <View style={styles.macrosBadge}>
-              <Text style={styles.macrosBadgeText}>📊 {active.macros}</Text>
+              <Text style={styles.macrosBadgeText}>
+                📊 {biometrics.macros.carbsGrams}g Szénhidrát • {biometrics.macros.proteinGrams}g Fehérje • {biometrics.macros.fatGrams}g Zsír
+              </Text>
+            </View>
+            <View style={styles.biometricsNoteBox}>
+              <Text style={styles.biometricsNoteText}>
+                ⚡ Mifflin-St Jeor: BMR {biometrics.bmr} kcal • TDEE {biometrics.tdee} kcal
+              </Text>
             </View>
           </View>
         );
       })()}
 
-      
+
       <View style={styles.addMealCard}>
         <Text style={styles.addMealTitle}>➕ Étkezés hozzáadása</Text>
 
@@ -213,7 +229,7 @@ const DietScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      
+
       <Text style={styles.sectionHeading}>Mai rögzített étkezések ({todayMeals.length}):</Text>
       {todayMeals.length === 0 ? (
         <View style={styles.emptyMealsCard}>
@@ -377,6 +393,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: colors.textSecondary,
+  },
+  biometricsNoteBox: {
+    marginTop: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    backgroundColor: colors.primaryLight,
+    borderRadius: borderRadius.sm,
+  },
+  biometricsNoteText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.primary,
   },
 
   addMealCard: {

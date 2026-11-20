@@ -27,6 +27,7 @@ const MenuScreen = ({ navigation }: any) => {
     todaySteps,
     consumedCalories,
     setConsumedCalories,
+    dailyCalorieGoal,
     todayWater,
     setTodayWater,
     workoutPlans,
@@ -62,6 +63,7 @@ const MenuScreen = ({ navigation }: any) => {
         <DashboardStats
           todaySteps={todaySteps}
           consumedCalories={consumedCalories}
+          dailyCalorieGoal={dailyCalorieGoal}
           todayWater={todayWater}
           onNavigateSteps={() => navigation.navigate('StepCounter')}
           onNavigateStats={() => navigation.navigate('Stats')}
