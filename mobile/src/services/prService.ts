@@ -35,9 +35,7 @@ export interface OneRmPercentage {
   estimatedReps: number;
 }
 
-/**
- * elfogadott edzésterhelési százalék 1RM alapján
- */
+// 1RM intenzitási zónák (100% - 60%)
 export const calculate1RmPercentages = (oneRmKg: number): OneRmPercentage[] => {
   const safe1Rm = Math.max(0, oneRmKg);
   const percentBreakdowns = [
@@ -66,51 +64,14 @@ export const DEFAULT_EXERCISES: Exercise[] = [
   { id: 'deadlifts', name: 'Felhúzás (Deadlift)', category: 'Hát / Láb', unit: 'kg' },
 ];
 
-// Kezdeti helyőrző PR adatok (Epley 1RM és volumen értékekkel)
-export const DEFAULT_PRS: Record<string, PersonalRecord> = {
-  squats: {
-    exerciseId: 'squats',
-    exerciseName: 'Guggolás (Squat)',
-    weight: 120,
-    reps: 1,
-    estimated1Rm: 120,
-    totalVolumeKg: 120,
-    date: '2026-10-01',
-  },
-  benchpress: {
-    exerciseId: 'benchpress',
-    exerciseName: 'Fekvenyomás (Bench Press)',
-    weight: 100,
-    reps: 1,
-    estimated1Rm: 100,
-    totalVolumeKg: 100,
-    date: '2026-09-28',
-  },
-  deadlifts: {
-    exerciseId: 'deadlifts',
-    exerciseName: 'Felhúzás (Deadlift)',
-    weight: 140,
-    reps: 1,
-    estimated1Rm: 140,
-    totalVolumeKg: 140,
-    date: '2026-10-05',
-  },
-};
+export const DEFAULT_PRS: Record<string, PersonalRecord> = {};
 
-// Helyi gyorsítótár a gyors és offline eléréshez
-let prCache: Record<string, PersonalRecord> = { ...DEFAULT_PRS };
+let prCache: Record<string, PersonalRecord> = {};
 
-/**
- * Lekéri az elérhető gyakorlatokat
- */
 export const getAvailableExercises = async (): Promise<Exercise[]> => {
   return DEFAULT_EXERCISES;
 };
 
-/**
- * Lekéri a felhasználó egyéni rekordjait (PR)
- * Ha be van jelentkezve, Firestore-ból olvassa, egyébként a cache-ből vagy alapértelmezett értékekkel tér vissza.
- */
 export const getPersonalRecords = async (): Promise<Record<string, PersonalRecord>> => {
   const user = auth.currentUser;
   if (!user) {
@@ -122,7 +83,7 @@ export const getPersonalRecords = async (): Promise<Record<string, PersonalRecor
     const q = query(prsRef, where('userId', '==', user.uid));
     const querySnapshot = await getDocs(q);
 
-    const records: Record<string, PersonalRecord> = { ...DEFAULT_PRS };
+    const records: Record<string, PersonalRecord> = {};
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data() as Partial<PersonalRecord> & { userId?: string };
       if (data && data.exerciseId) {
@@ -152,9 +113,7 @@ export const getPersonalRecords = async (): Promise<Record<string, PersonalRecor
   }
 };
 
-/**
- * Elment egy új vagy frissített egyéni rekordot az Epley 1RM és volumen kiszámításával
- */
+// egyéni rekord mentése
 export const savePersonalRecord = async (
   exerciseId: string,
   weight: number,
@@ -204,9 +163,7 @@ export const savePersonalRecord = async (
   return updatedRecord;
 };
 
-/**
- * Kiszámolja a három fő gyakorlat összesített rekordját (Powerlifting Total)
- */
+// összesített PR súly
 export const calculateTotalPr = (records: Record<string, PersonalRecord>): number => {
   return Object.values(records).reduce((sum, item) => sum + (item.weight || 0), 0);
 };

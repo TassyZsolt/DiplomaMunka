@@ -51,9 +51,7 @@ export const getCachedSteps = (): number => {
   return cachedSteps;
 };
 
-/**
- * Mai dátum kulcs lekérése 'YYYY-MM-DD' formátumban
- */
+// mai dátum (YYYY-MM-DD)
 export const getTodayDateKey = (): string => {
   const now = new Date();
   const year = now.getFullYear();
@@ -62,16 +60,12 @@ export const getTodayDateKey = (): string => {
   return `${year}-${month}-${day}`;
 };
 
-/**
- * Determinisztikus dokumentum ID az idempotens mentéshez
- */
+// dokumentum id képzése
 export const getDailyStepDocId = (userId: string, dateKey: string): string => {
   return `${userId}_${dateKey}`;
 };
 
-/**
- * Ellenőrzi a hardveres lépésszámláló elérhetőségét a készüléken
- */
+// pedometer elérhetőség ellenőrzése
 export const checkPedometerAvailability = async (): Promise<boolean> => {
   try {
     return await Pedometer.isAvailableAsync();
@@ -80,9 +74,7 @@ export const checkPedometerAvailability = async (): Promise<boolean> => {
   }
 };
 
-/**
- * Jogosultság kérése a mozgásérzékelőhöz
- */
+// szenzor jogosultság kérése
 export const requestPedometerPermission = async (): Promise<boolean> => {
   try {
     const { status } = await Pedometer.requestPermissionsAsync();
@@ -92,9 +84,7 @@ export const requestPedometerPermission = async (): Promise<boolean> => {
   }
 };
 
-/**
- * Lekéri a mai nap rögzített lépésszámát Firestore-ból
- */
+// mai lépések olvasása firestore-ból
 export const getTodayStepDocFromFirestore = async (userId?: string): Promise<number> => {
   const user = auth.currentUser;
   const uid = userId || user?.uid;
@@ -120,11 +110,7 @@ export const getTodayStepDocFromFirestore = async (userId?: string): Promise<num
   }
 };
 
-/**
- * Idempotens Firestore lépésszinkronizáció
- * A determinisztikus azonosító (userId_date) és a merge opció garantálja,
- * hogy ismételt küldés vagy hálózati újraküldés esetén sincs duplikáció.
- */
+// lépések mentése firestore-ba
 export const syncDailyStepsToFirestore = async (
   steps: number,
   userId?: string
@@ -161,11 +147,8 @@ export const syncDailyStepsToFirestore = async (
   }
 };
 
-/**
- * Lekéri a mai napon rögzített lépéseket (kompatibilitási réteg a hookokhoz)
- */
+// mai lépések lekérése
 export const getTodaySteps = async (): Promise<number> => {
-  // Ha van bejelentkezett felhasználó, megnézzük a Firestore-t
   const user = auth.currentUser;
   if (user) {
     const firestoreSteps = await getTodayStepDocFromFirestore(user.uid);
@@ -174,7 +157,6 @@ export const getTodaySteps = async (): Promise<number> => {
     }
   }
 
-  // iOS CoreMotion esetén közvetlenül elérhető a napi archívum
   if (Platform.OS === 'ios') {
     try {
       const isAvailable = await checkPedometerAvailability();
@@ -190,16 +172,14 @@ export const getTodaySteps = async (): Promise<number> => {
         }
       }
     } catch {
-      // Fallback a gyorsítótárra
+      // fallback a cache-re
     }
   }
 
   return cachedSteps;
 };
 
-/**
- * 7 napos valós lépéstörténet lekérdezése Firestore-ból
- */
+// utolsó 7 nap lépéstörténete
 export const getWeeklyStepHistory = async (
   userId?: string,
   todayLiveSteps?: number
@@ -265,9 +245,7 @@ export const getWeeklyStepHistory = async (
   }
 };
 
-/**
- * Napi óránkénti lépéseloszlás dinamikus becslése az aktuális napszak és lépések alapján
- */
+// óránkénti lépések becslése
 export const getHourlyStepBreakdown = (totalSteps: number): HourlyStepItem[] => {
   const currentHour = new Date().getHours();
   const slots = [
@@ -292,24 +270,18 @@ export const getHourlyStepBreakdown = (totalSteps: number): HourlyStepItem[] => 
   });
 };
 
-/**
- * Lépésszám alapján számított távolság becslése (km-ben, átlagos 0.75m lépéshosszal)
- */
 export const calculateDistanceKm = (steps: number): number => {
-  const km = (steps * 0.75) / 1000;
+  const safeSteps = Math.max(0, steps || 0);
+  const km = (safeSteps * 0.75) / 1000;
   return parseFloat(km.toFixed(2));
 };
 
-/**
- * Lépésszám alapján égetett kalória becslése (~0.04 kcal / lépés)
- */
 export const calculateCaloriesKcal = (steps: number): number => {
-  return Math.round(steps * 0.04);
+  const safeSteps = Math.max(0, steps || 0);
+  return Math.round(safeSteps * 0.04);
 };
 
-/**
- * Aktív sétaidő becslése percekben (~100 lépés / perc)
- */
 export const calculateActiveMinutes = (steps: number): number => {
-  return Math.round(steps / 100);
+  const safeSteps = Math.max(0, steps || 0);
+  return Math.round(safeSteps / 100);
 };

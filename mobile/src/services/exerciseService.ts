@@ -288,9 +288,7 @@ export const SEED_EXERCISES: ExerciseDoc[] = [
 let exerciseCache: ExerciseDoc[] = [...SEED_EXERCISES];
 let hasSeeded = false;
 
-/**
- * Predefiniált gyakorlatok feltöltése Firestore-ba (Seed)
- */
+// alapértelmezett gyakorlatok feltöltése firestore-ba
 export const seedPredefinedExercises = async (): Promise<void> => {
   if (hasSeeded) return;
   try {
@@ -299,15 +297,12 @@ export const seedPredefinedExercises = async (): Promise<void> => {
       await setDoc(exerciseRef, item, { merge: true });
     }
     hasSeeded = true;
-    console.log('✅ Firestore /exercises sikeresen feltöltve.');
   } catch (error) {
-    console.warn('Nem sikerült a gyakorlatokat Firestore-ba feltölteni (offline vagy korlátozott jogosultság):', error);
+    console.warn('Nem sikerült a gyakorlatokat feltölteni:', error);
   }
 };
 
-/**
- * Lekéri az elérhető (alapértelmezett és saját) gyakorlatokat.
- */
+// elérhető gyakorlatok lekérése
 export async function fetchAvailableExercises(currentUserId?: string): Promise<ExerciseDoc[]> {
   const exercisesRef = collection(db, 'exercises');
   const userId = currentUserId || auth.currentUser?.uid;
@@ -352,9 +347,7 @@ export const getExercises = async (currentUserId?: string): Promise<ExerciseDoc[
   return fetchAvailableExercises(currentUserId);
 };
 
-/**
- * Új egyéni gyakorlat létrehozása a Firestore /exercises kollekcióban
- */
+// új egyéni gyakorlat mentése
 export const createCustomExercise = async (
   exerciseData: Omit<ExerciseDoc, 'id' | 'isCustom' | 'userId' | 'createdAt'>
 ): Promise<ExerciseDoc> => {
@@ -385,9 +378,7 @@ export const createCustomExercise = async (
   return newExercise;
 };
 
-/**
- * Egyéni gyakorlat törlése Firestore-ból és a helyi cache-ből
- */
+// egyéni gyakorlat törlése
 export const deleteCustomExercise = async (exerciseId: string): Promise<void> => {
   exerciseCache = exerciseCache.filter((ex) => ex.id !== exerciseId);
   try {
@@ -397,9 +388,7 @@ export const deleteCustomExercise = async (exerciseId: string): Promise<void> =>
   }
 };
 
-/**
- * Gyakorlat keresése ID alapján
- */
+// keresés id alapján
 export const getExerciseById = (id: string): ExerciseDoc | undefined => {
   return exerciseCache.find((e) => e.id === id);
 };

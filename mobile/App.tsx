@@ -2,7 +2,6 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import HomeScreen from './src/screens/HomeScreen/HomeScreen';
 import RegisterScreen from './src/screens/RegScreen/RegisterScreen';
 import LoginScreen from './src/screens/LogScreen/LoginScreen';
 import MenuScreen from './src/screens/MenuScreen/MenuScreen';
@@ -24,7 +23,6 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Login">
           <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
-          <Stack.Screen name="Home" component={HomeScreen} options={{title: 'Főoldal'}}/>
           <Stack.Screen name="Register" component={RegisterScreen} options={{headerShown: false}} />
           <Stack.Screen name="Menu" component={MenuScreen} options={{title: 'Főmenü', headerBackVisible: false}} />
           <Stack.Screen name="Profil" component={ProfilScreen} options={{title: 'Profil oldal'}} />
@@ -33,11 +31,8 @@ export default function App() {
           <Stack.Screen name="Diet" component={DietScreen} options={{title: 'Diéta oldal'}} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{title: 'Profil szerkesztése'}} />
           <Stack.Screen name="PersonalStats" component={PersonalStatsScreen} options={{title: 'Személyes statisztikák'}} />
-          <Stack.Screen name="personalStats" component={PersonalStatsScreen} options={{title: 'Személyes statisztikák'}} />
           <Stack.Screen name="StepCounter" component={StepCounterScreen} options={{title: 'Lépésszámláló'}} />
-          <Stack.Screen name="stepCounter" component={StepCounterScreen} options={{title: 'Lépésszámláló'}} />
           <Stack.Screen name="WorkoutProgress" component={WorkoutProgressScreen} options={{title: 'Edzések & Előrehaladás'}} />
-          <Stack.Screen name="workoutProgress" component={WorkoutProgressScreen} options={{title: 'Edzések & Előrehaladás'}} />
         </Stack.Navigator>
       </NavigationContainer>
     </StepTrackerProvider>

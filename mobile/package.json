@@ -7,7 +7,9 @@
     "start:go": "expo start --go",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest --verbose",
+    "test:coverage": "jest --coverage --collectCoverageFrom=\"src/services/userService.ts\" --collectCoverageFrom=\"src/services/prService.ts\""
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
@@ -31,7 +33,10 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@tsconfig/react-native": "^3.0.6",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.2.4",
+    "jest": "^30.5.2",
+    "ts-jest": "^29.4.15",
     "typescript": "~6.0.3"
   },
   "private": true

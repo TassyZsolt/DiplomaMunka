@@ -139,7 +139,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
             </View>
           </View>
 
-          <Text style={styles.smallStatTitle}>Elfogasztott kalória</Text>
+          <Text style={styles.smallStatTitle}>Elfogyasztott kalória</Text>
           <View style={styles.smallStatValueRow}>
             <Text style={styles.smallStatBigVal}>{consumedCalories}</Text>
             <Text style={styles.smallStatGoal}> / {dailyCalorieGoal} kcal</Text>
