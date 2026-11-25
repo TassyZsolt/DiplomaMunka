@@ -23,19 +23,19 @@ export interface ExerciseSet {
 }
 
 export interface WorkoutExercise {
-  exerciseId: string; // Hivatkozás a /exercises/{id} dokumentumra
-  name: string; // Tárolt megjelenítendő név
-  trackingType: TrackingType; // 'reps_only' | 'reps_and_weight' | 'time_hold'
+  exerciseId: string;
+  name: string;
+  trackingType: TrackingType;
   muscleGroup: MuscleGroup | string;
   sets: ExerciseSet[];
 }
 
 export interface WorkoutSession {
   id?: string;
-  userId: string; // Felhasználó azonosító a gyökérben
+  userId: string;
   planId?: string;
   title: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   durationMinutes: number;
   totalVolumeKg: number;
   totalSets: number;
@@ -59,7 +59,7 @@ export interface WorkoutPlan {
   id: string;
   name: string;
   category: string;
-  frequency?: string; // pl. "3 nap / hét"
+  frequency?: string;
   durationEst: string;
   description: string;
   isCustom?: boolean;
@@ -213,16 +213,12 @@ const INITIAL_DEMO_SESSIONS: WorkoutSession[] = [
 let sessionCache: WorkoutSession[] = [...INITIAL_DEMO_SESSIONS];
 let customPlansCache: WorkoutPlan[] = [];
 
-/**
- * Lekéri az elérhető előre definiált edzésterveket (Sablonok)
- */
+// alapértelmezett edzéstervek
 export const getWorkoutPlans = (): WorkoutPlan[] => {
   return WORKOUT_PLANS;
 };
 
-/**
- * Lekéri a felhasználó saját egyéni edzésterveit (Saját Terveim)
- */
+// saját edzéstervek lekérése
 export const getCustomWorkoutPlans = async (): Promise<WorkoutPlan[]> => {
   const user = auth.currentUser;
   if (!user) {
@@ -247,9 +243,7 @@ export const getCustomWorkoutPlans = async (): Promise<WorkoutPlan[]> => {
   }
 };
 
-/**
- * Új egyéni edzésterv mentése Firestore-ba
- */
+// egyéni edzésterv mentése
 export const saveCustomWorkoutPlan = async (
   planData: Omit<WorkoutPlan, 'id' | 'userId' | 'isCustom' | 'createdAt'>
 ): Promise<WorkoutPlan> => {
@@ -288,9 +282,7 @@ export const saveCustomWorkoutPlan = async (
   return newPlan;
 };
 
-/**
- * Egyéni edzésterv törlése
- */
+// egyéni edzésterv törlése
 export const deleteCustomWorkoutPlan = async (planId: string): Promise<void> => {
   customPlansCache = customPlansCache.filter((p) => p.id !== planId);
   const user = auth.currentUser;
@@ -303,9 +295,7 @@ export const deleteCustomWorkoutPlan = async (planId: string): Promise<void> => 
   }
 };
 
-/**
- * Lekéri a felhasználó korábbi edzéseit a Firestore-ból
- */
+// edzésnapló lekérése
 export const getWorkoutSessions = async (): Promise<WorkoutSession[]> => {
   const user = auth.currentUser;
   if (!user) {
@@ -336,9 +326,7 @@ export const getWorkoutSessions = async (): Promise<WorkoutSession[]> => {
   }
 };
 
-/**
- * Elmenti a befejezett edzést és frissíti a rekordokat.
- */
+// befejezett edzés mentése
 export const saveWorkoutSession = async (
   sessionData: Omit<WorkoutSession, 'id' | 'userId' | 'createdAt' | 'totalVolumeKg' | 'totalSets'>
 ): Promise<WorkoutSession> => {
@@ -466,9 +454,7 @@ export const saveWorkoutSession = async (
   return newSession;
 };
 
-/**
- * Kiszámolja a heti statisztikákat az edzések alapján
- */
+// heti edzésstatisztika
 export interface WeeklyStats {
   weekDays: {
     dayName: string;

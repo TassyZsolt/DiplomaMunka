@@ -2,10 +2,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { SEED_EXERCISES, ExerciseDoc } from './exerciseService';
 
-/**
- * Seeding script a Firestore /exercises kollekció feltöltésére.
- * Bárhonnan meghívható, vagy önállóan futtatható.
- */
+// alapértelmezett gyakorlatok seedelése
 export async function seedExercises(): Promise<void> {
   console.log('Starting Firestore exercises seeding...');
   try {

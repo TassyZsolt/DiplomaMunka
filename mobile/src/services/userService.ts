@@ -22,9 +22,9 @@ export interface BmiResult {
 }
 
 export interface BiometricsResult {
-  bmr: number; // Basal Metabolic Rate (Mifflin-St Jeor)
-  tdee: number; // Total Daily Energy Expenditure (BMR * aktivitási szorzó)
-  targetCalories: number; // Napi kalóriakeret a fitnesz célhoz igazítva
+  bmr: number; // alapanyagcsere (kcal)
+  tdee: number; // napi kalóriaigény
+  targetCalories: number; // cél kalória
   macros: {
     proteinGrams: number;
     carbsGrams: number;
@@ -32,9 +32,7 @@ export interface BiometricsResult {
   };
 }
 
-/**
- * Lekéri a bejelentkezett felhasználó profil adatait a Firestore 'users' gyűjteményből.
- */
+// profil lekérése firestore-ból
 export const getUserProfile = async (userId?: string): Promise<UserProfile | null> => {
   const uid = userId || auth.currentUser?.uid;
   if (!uid) return null;
@@ -52,9 +50,7 @@ export const getUserProfile = async (userId?: string): Promise<UserProfile | nul
   }
 };
 
-/**
- * Frissíti a bejelentkezett felhasználó adatait a Firestore-ban.
- */
+// profil frissítése
 export const updateUserProfile = async (data: Partial<UserProfile>): Promise<void> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Nincs bejelentkezett felhasználó.');
@@ -68,9 +64,7 @@ export const updateUserProfile = async (data: Partial<UserProfile>): Promise<voi
   }
 };
 
-/**
- * Kiszámolja a BMI értéket és a kategória címkét / színt.
- */
+// bmi számítás
 export const calculateBmi = (weightKg?: number | null, heightCm?: number | null): BmiResult | null => {
   if (!weightKg || !heightCm || weightKg <= 0 || heightCm <= 0) return null;
   const heightM = heightCm / 100;
@@ -98,9 +92,7 @@ export const calculateBmi = (weightKg?: number | null, heightCm?: number | null)
   return { value: rounded, label, textColor, bgColor };
 };
 
-/**
- * Szépen formázza a regisztráció dátumát.
- */
+// regisztráció dátumának formázása
 export const formatMemberSince = (createdAt: any): string => {
   if (!createdAt) return 'Aktív tag';
   try {
@@ -111,11 +103,7 @@ export const formatMemberSince = (createdAt: any): string => {
   }
 };
 
-/**
- * Mifflin-St Jeor formula alapján számított BMR (Basal Metabolic Rate - Alapanyagcsere):
- * Férfi: BMR = (10 * testsúly_kg) + (6.25 * magasság_cm) - (5 * életkor) + 5
- * Nő: BMR = (10 * testsúly_kg) + (6.25 * magasság_cm) - (5 * életkor) - 161
- */
+// BMR számítás (Mifflin-St Jeor)
 export const calculateMifflinStJeorBmr = (
   weightKg?: number | null,
   heightCm?: number | null,
@@ -123,7 +111,7 @@ export const calculateMifflinStJeorBmr = (
   gender?: string | null
 ): number => {
   if (!weightKg || !heightCm || weightKg <= 0 || heightCm <= 0) {
-    return 1650; // Alapértelmezett becsült BMR referencia
+    return 1650; // default becsült érték
   }
 
   const safeAge = age && age > 0 ? age : 25;
@@ -135,15 +123,12 @@ export const calculateMifflinStJeorBmr = (
   return Math.round(baseBmr + genderAdjustment);
 };
 
-/**
- * TDEE (Total Daily Energy Expenditure - Napi teljes energiafelhasználás):
- * TDEE = BMR * Aktivitási szorzó
- */
+// TDEE kalkuláció aktivitás alapján
 export const calculateTdee = (
   bmr: number,
   activityLevel?: string | null
 ): number => {
-  let multiplier = 1.55; // Alapértelmezett: heti 3-5 edzés (közepesen aktív)
+  let multiplier = 1.55; // heti 3-5 edzés alapértelmezetten
 
   switch (activityLevel) {
     case 'sedentary':
@@ -173,9 +158,7 @@ export const calculateTdee = (
   return Math.round(bmr * multiplier);
 };
 
-/**
- * Cél szerinti napi kalóriakeret és makrotápanyagok kiszámítása a biometrikus profil alapján
- */
+// napi cél kalória és makrók számítása
 export const calculateBiometrics = (
   profile?: Partial<UserProfile> | null,
   dietType: string = 'Regular'
@@ -202,12 +185,12 @@ export const calculateBiometrics = (
     targetCalories = tdee + 100;
   }
 
-  // Ha a felhasználó még nem adott meg testadatokat, megbízható tartalékként a 2200 kcal használatos
+  // fallback ha még nincsenek profiladatok
   if (!hasMetrics) {
     targetCalories = 2200;
   }
 
-  // Makrotápanyagok számítása grammban
+  // makrók aránya
   let carbsRatio = 0.50;
   let proteinRatio = 0.25;
   let fatRatio = 0.25;

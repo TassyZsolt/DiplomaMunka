@@ -22,9 +22,7 @@ export const DEFAULT_DAILY_CALORIE_GOAL = 2200;
 export { calculateBiometrics };
 export type { BiometricsResult };
 
-/**
- * Lekéri a felhasználó profilja alapján számított napi kalóriakeretet
- */
+// napi kalóriacél a profil adatokból
 export const getUserDailyCalorieGoal = async (userId?: string): Promise<number> => {
   try {
     const profile = await getUserProfile(userId);
@@ -41,9 +39,7 @@ export const getUserDailyCalorieGoal = async (userId?: string): Promise<number> 
 // Helyi gyorsítótár napi étkezéshez
 let cachedMeals: MealEntry[] = [];
 
-/**
- * Új étkezés mentése a Firestore-ba és a helyi cache-be
- */
+// új étkezés mentése
 export const addMealData = async (
   name: string,
   calories: number,
@@ -96,9 +92,7 @@ export const deleteMealData = async (mealId: string): Promise<void> => {
   }
 };
 
-/**
- * Lekéri a mai nap rögzített étkezéseit
- */
+// mai étkezések lekérése
 export const getTodayMeals = async (): Promise<MealEntry[]> => {
   const user = auth.currentUser;
   const today = new Date().toISOString().split('T')[0];
@@ -134,9 +128,7 @@ export const getTodayMeals = async (): Promise<MealEntry[]> => {
   }
 };
 
-/**
- * Lekéri a mai nap összesített elfogyasztott kalóriáját
- */
+// mai kalóriabevitel összege
 export const getTodayConsumedCalories = async (): Promise<number> => {
   try {
     const meals = await getTodayMeals();
